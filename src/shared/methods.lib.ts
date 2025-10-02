@@ -1,0 +1,17 @@
+export const METHODS_DB = [
+	{name: 'Cambridge Surprise Major', notation: 'x38x14x1258x36x14x58x16x78,12', stage: 'Major'},
+	{name: 'Bristol Surprise Major', notation: 'x58x14.58x58.36.14x14.58x14x18,18', 'bob': '14', 'single': '1234', stage: 'Major'},
+	{name: 'Rutland Surprise Major', notation: 'x38x14x58x16x14x38x34x18,12', stage: 'Major'},
+	{name: 'Lincolnshire Surprise Major', notation: 'x38x14x58x16x14x58x36x78,12', stage: 'Major'},
+	{name: 'Superlative Surprise Major', notation: 'x36x14x58x36x14x58x36x78,12', stage: 'Major'},	
+	{name: 'London Surprise Major', notation: '38x38.14x12x38.14x14.58.16x16.58,12', stage: 'Major'},	
+	{name: 'Yorkshire Surprise Major', notation: 'x38x14x58x16x12x38x14x78,12', stage: 'Major'},	
+	{name: 'Pudsey Surprise Major', notation: 'x58x16x12x38x14x58x16x78,12', stage: 'Major'},
+	{name: 'Plain Bob Major', notation: 'x18x18x18x18,12', stage: 'Major'}, 	
+	{name: 'Plain Bob Triples', notation: '7.1.7.1.7.1.7,127', unitTest: {bob: '147', single: '12347'}, stage: 'Triples'}, 	
+	{name: 'Middlesex Bob Triples', notation: '5.1.7.1.7.1.7,125', unitTest: {bob: '145', single: '12345'}, stage: 'Triples'},
+	{name: 'Grandsire Triples', notation: '3,1.7.1.7.1.7.1', 'bob': '3.1', 'single': '3.123', stage: 'Triples'},
+	{name: 'Single Oxford Bob Triples', notation: '3,1.5.1.7.1.7.1', 'bob': '3.1', 'single': '3.123', stage: 'Triples'},
+	{name: 'St Clements Bob Triples', notation: '3,1.7.1.7.3.7.3', 'bob': '3.1', 'single': '3.123', stage: 'Triples'},
+	{name: 'Hereward Bob Triples', notation: '3,1.5.1.7.3.7.1', 'bob': '3.1', 'single': '3.123', stage: 'Triples'}
+]

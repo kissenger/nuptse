@@ -5,10 +5,14 @@ export type placeNotationArray = Array<Array<number>>
 export interface MethodDescriptor {
   name: string,
   stage: string,
-  abbr: string,
+  unitTest?: {
+    bob: string,
+    single: string
+  }
   notation: string,
-  bob: string,
-  single: string,
+  calls?: {
+    [key: string]: string;
+  }
 }
 export type ActiveMethods = Array<Method>;
 

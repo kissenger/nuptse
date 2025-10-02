@@ -1,1 +1,60 @@
-<canvas #canvas id="canvas"></canvas>
+<div #anchor class="anchor section" id="welcome">
+  
+  <div class="section-content">
+    Welcome to Practice Night, where you can practice your favourite ringing methods
+    and calls until you're ready for that special performance.  Select any combination
+    of methods and calls, and Practice Night will mix things up so you can get those tricky
+    lead end changes firmly planted in your head!
+  </div>
+
+  <div class="section-footer">
+    <button class="main-btn" (click)="scrollTo('method')">Start Here</button> 
+  </div>
+</div>
+
+<div #anchor class="anchor section" id="method">
+
+  <div class="section-header">
+    <button class="main-btn" (click)="scrollTo('welcome')">Next</button>  
+  </div>
+
+  <div class="section-content">
+
+    <div class="subsection">
+      <form>    
+        <label for="inputSearch">Select method to add:</label><br>
+        <input [(ngModel)]="searchString" (input)="onSearch()" autocomplete="off"
+          name="inputSearch" id="inputSearch" placeholder="Search for method...">
+       </form>
+
+       @for (m of filteredMethods; track m) {
+        <div (click)="addMethod(m)">{{m.name}}</div>
+       }
+    </div>
+
+    <div class="subsection">
+      Selected Methods:
+      @for (m of selectedMethods; track m) {
+        <div (click)="removeMethod(m)">{{m.name}}</div>
+      }
+    </div>
+  </div>
+
+  <div class="section-footer">
+    <button class="main-btn" (click)="scrollTo('calls')">Next</button>  
+  </div>
+</div>
+
+<div #anchor class="anchor" id="calls">
+  Now tell us what calls you would like to include...
+  
+  <button class="login-cancel" (click)="scrollTo('practice')">Launch Practice</button>">
+</div>
+
+<div #anchor class="anchor" id="practice">
+  Use the buttons and/or arrow keys to start the practice...
+  <canvas #canvas id="canvas"></canvas>
+</div>
+
+
+
