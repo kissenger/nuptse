@@ -4,6 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "deploy:master": "ng build --configuration prod",
+    "deploy:beta": "ng build --configuration beta",
     "build:ssr": "ng build --configuration development",
     "watch:ssr": "ng build --watch --configuration development",
     "serve": "node dist/nuptse/server/server.mjs"
