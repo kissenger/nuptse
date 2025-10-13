@@ -30,8 +30,10 @@
               "entry": "src/server.ts"
             }
           },
+
           "configurations": {
-            "production": {
+            "prod": {
+              "outputPath": "dist/prod",                 
               "budgets": [
                 {
                   "type": "initial",
@@ -46,7 +48,9 @@
               ],
               "outputHashing": "all"
             },
-            "development": {
+
+            "beta": {
+              "outputPath": "dist/beta",                 
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
