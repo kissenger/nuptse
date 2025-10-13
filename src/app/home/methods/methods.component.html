@@ -1,0 +1,26 @@
+
+
+<form>    
+  <label for="inputSearch">Select method(s) to add:</label><br>
+  <input [(ngModel)]="searchString" autocomplete="off"
+    name="inputSearch" id="inputSearch" placeholder="Type to start ...">
+</form>
+
+<div class="list-container">
+  <ul class="list popover">
+    @for (m of filteredMethods; track m) {
+      <li (click)="updateSelectedMethods(m,'add')">{{m.name}}</li>
+    }
+  </ul>
+</div>
+
+<div class="top-margin">
+  Selected Methods:
+  <ul class="list">
+    @for (m of selectedMethods; track m) {
+      <li (click)="updateSelectedMethods(m,'remove')">{{m.name}}</li>
+    }
+  </ul>
+</div>
+
+

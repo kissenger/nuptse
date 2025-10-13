@@ -1,41 +1,40 @@
 
 .anchor {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
+  margin: 0rem;
+  padding: 1rem;
   border: red solid 1px;
-}
-
-.section {
   display: flex;
   box-sizing: border-box;
   flex-direction: column;
-  margin: 0rem;
-  padding: 1rem;
+  position: relative;
 }
 
-.subsection {
-  box-sizing: border-box;
-  margin-block: 1rem;
-}
 
-.section-content {
+.content {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.section-footer {
-
+button {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  position: fixed;
+  right: 10px;
+  z-index: 100;
 }
 
-.main-btn {
-  display: block;
-  width: 75vw;
-  margin-inline: auto;
-  margin-block: 1rem;
-  height: 2rem;
+.hide {
+  display: none;
 }
 
-canvas {
-  border: 1px solid black;
+.fwd {
+  bottom: 10px;
+}
+
+.back {
+  top: 10px;
 }

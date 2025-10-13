@@ -1,51 +1,44 @@
 
-import { MethodDescriptor, placeNotationArray } from "../types";
+import { MethodDescriptor, placebellArray, placebellObject } from "../types";
 
 export class Method {
   private _name: string;
-  private _stage: string;
-  private _callPosition: number;
-  private _plainCourse: placeNotationArray;
-  private _calls: {[key: string]: placeNotationArray} = {}; 
+  private _numberOfBells: number;
+  private _plainCourse: placebellArray;
+  private _placebellObject: placebellObject;
+  private _calls: {[key: string]: placebellArray} = {}; 
   private _isEven: boolean;
   private _placeNotation: string;
 
   constructor(method: MethodDescriptor) {
     this._name = method.name;
-    this._stage = method.stage;
     this._placeNotation = method.notation;
+    this._numberOfBells = this._nBells(method.stage);
     this._isEven = this._numberOfBells % 2 === 0;
-    this._plainCourse = this._getPlainCourse;
-    this._calls = this._getCalls;    
-    this._callPosition = this.leadLength - Math.max(...Object.values(this._calls).map(c => c.length));
+    this._plainCourse = this._getPlainCourse(method.notation);
+    this._calls = this._getCalls(this._plainCourse);
+    this._placebellObject = {
+      plain: this._plainCourse,
+      bob:   this._getBobOrSingleCourse(this._plainCourse,this._calls,'bob'),
+      single: this._getBobOrSingleCourse(this._plainCourse,this._calls,'single')
+    }
   }
 
   /*
-  * Public getters
+  * Public getters and functions
   */
-  public get leadLength() { return this._plainCourse.length; }
+  public get leadLength()    { return this._plainCourse.length; }
   public get numberOfBells() { return this._numberOfBells; }
-  public get name() { return this._name; }
-  public get stage() { return this._stage; }
-  public get callPosition() { return this._callPosition; }
-
-  /* 
-  *  Get the transformation for the requested row
-  *  If a call is provided AND the call changes are available for that row, return the call 
-  */
-  public getChanges(row: number, callType?: 'bob' | 'single' | undefined) {
-    if (!!callType) {
-      if (row >= this.leadLength - this._calls[callType].length) {
-        return this._calls[callType][row - this.leadLength + 1];
-      }
-    }
-    return this._plainCourse[row];
+  public get name()          { return this._name; }
+  public get callPosition()  { return this.leadLength - Math.max(...Object.values(this._calls).map(c => c.length)) - 1; }
+  public placebells(rowNumber:number, call:'plain'|'bob'|'single') { 
+    return this._placebellObject[call][rowNumber];
   }
 
   /*
   * Apply symmetry to the provided array
   */
-  private _applyPalendromicSymmetry(arr: placeNotationArray) {
+  private _applyPalendromicSymmetry(arr: placebellArray) {
     return arr.concat(arr.slice(0,-1).reverse());
   }
 
@@ -53,7 +46,7 @@ export class Method {
   * Convert place notation string into an array of place making bells for a leadend
   */
   private _unpackPlaceNotation(placeNotationString: string) {
-    const array: placeNotationArray = [];
+    const array: placebellArray = [];
     let placeBells: Array<number> = [];
     
     for (let char of placeNotationString) {
@@ -76,17 +69,30 @@ export class Method {
   /* 
   *  Get changes for each row in a plain course
   */
-  private get _getPlainCourse() {
-    let outArr: placeNotationArray = [];
-    this._placeNotation.split(',').forEach(part => {
+  private _getPlainCourse(placeNotation: string) {
+    let outArr: placebellArray = []; 
+    placeNotation.split(',').forEach(part => {
       let arr = this._unpackPlaceNotation(part);
       if (part.length > 5) {
         arr = this._applyPalendromicSymmetry(arr);
       }
-      outArr = outArr.concat(arr);
+      outArr = [...outArr, ...arr];
     })
+    console.log([...outArr])
     return outArr;
   }
+
+  /* 
+  *  Replace the last rows in a plain course with the appropriate calls
+  */
+  private _getBobOrSingleCourse(plainCourse:placebellArray,calls:{[key: string]: placebellArray},call:'bob'|'single') {
+    let outArr = [...plainCourse];
+    let start = plainCourse.length - calls[call].length;
+    let deleteCount = calls['bob'].length;
+    outArr.splice(start, deleteCount, ...calls[call]);
+    return outArr;
+  }
+
 
   /*
   * Infer the number of hunt bells:
@@ -99,16 +105,17 @@ export class Method {
   /*
   *
   */
-  private get _getCalls() {
+  private _getCalls(plainCourse: placebellArray) {
 
-    let bob: Array<Array<number>> = [];
-    let single: Array<Array<number>> = [];
+    let bob: placebellArray = [];
+    let single: placebellArray = [];
+    let pc: placebellArray = [...plainCourse];
 
     /*
     *  Find the last change that does not have a single placebell in 1pb
     */
-    const index = this._plainCourse.reverse().findIndex( r => r.length > 1 || r[0] !== 1 );
-    const affectedChanges = this._plainCourse.slice(index);
+    const index = pc.reverse().findIndex( r => r.length > 1 || r[0] !== 1 );
+    const affectedChanges = pc.slice(index);
     const n = this._numberOfBells;
 
     /*
@@ -142,13 +149,13 @@ export class Method {
 
     }
 
-
     return {bob, single};
 
   }
     
-  private get _numberOfBells(): number {
-    switch (this._stage) {
+
+  private _nBells(stage:string): number {
+    switch (stage) {
       case 'Maximus': return 12;
       case 'Cinques': return 11;
       case 'Royal':   return 10;

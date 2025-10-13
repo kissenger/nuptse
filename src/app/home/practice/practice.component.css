@@ -1,0 +1,28 @@
+
+.canvas-container {
+  width: 100%;
+}
+
+canvas {
+  border: 1px solid black;
+}
+
+.btns {
+  width: 100%;
+  height: 15%;
+  display: flex;
+  flex-direction: row;
+}
+
+.left {
+  width: 30%;
+}
+
+.down {
+  width: 30%;
+  margin-inline: auto;
+}
+
+.right {
+  width: 30%;
+}

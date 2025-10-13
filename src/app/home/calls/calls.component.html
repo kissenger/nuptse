@@ -1,0 +1,31 @@
+  <form>
+    
+    <p>
+      <label for="selectBell">Choose working bell:</label><br>
+      <select #selectWorkingBell [(ngModel)]="selectedWorkingBell" (click)="onBellSelect()" name="selectBell" id="selectBell">
+        @for(wbOption of workingBellSelectionArray; track wbOption) {
+          <option value="{{wbOption}}">{{wbOption}}</option>
+        }
+      </select>
+    </p>
+
+    <p>
+      <label for="selectBobs">Bobs:</label>
+      <select #selectBobs [(ngModel)]="bobs" (change)="onBobSelect()" name="selectBobs" id="selectBobs">
+        @for(callOption of callOptions; track callOption) {
+          <option value="{{callOption}}"> {{callOption}} </option>
+        }
+      </select>
+
+      <label for="selectSingles">Singles:</label>
+      <select #selectSingles [(ngModel)]="singles" (change)="onSingleSelect()" name="selectSingles" id="selectSingles">
+        @for(callOption of callOptions; track callOption) {
+          <option value="{{callOption}}"> {{callOption}} </option>
+        }
+      </select>
+
+      Percentage plain leads: {{calls.plain}}
+      Percentage bob leads: {{calls.bobs}}
+      Percentage single leads: {{calls.singles}}
+    </p>
+  </form>

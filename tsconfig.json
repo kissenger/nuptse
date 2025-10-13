@@ -16,7 +16,7 @@
     "module": "preserve",
     "paths": {
       "@pages/*": ["./src/app/*"],
-      "@shared/*": ["./src/app/shared/*"],
+      "@shared/*": ["./src/shared/*"],
     },    
   },
   "angularCompilerOptions": {
