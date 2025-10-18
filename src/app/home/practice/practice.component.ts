@@ -1,12 +1,12 @@
 import { Component, ElementRef, HostListener, Input, ViewChild} from '@angular/core';
-import { CallsObject, MethodDescriptorsArray,RowsToPrintArray } from '@shared/types';
+import { BellPositionHistory, CallsObject, MethodDescriptorsArray,RowsToPrintArray, RowToPrint } from '@shared/types';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { Practice } from '@shared/classes/practice.class';
 
 @Component({
   selector: 'app-practice',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, DecimalPipe],
   templateUrl: './practice.component.html',
   styleUrl: './practice.component.css',
   standalone: true
@@ -16,9 +16,10 @@ export class PracticeComponent {
 
   @Input() methods: MethodDescriptorsArray = [];
   @Input() calls: CallsObject = {plain: 100, bobs: 0, singles: 0};
+  @ViewChild('svg') _svgElement!: ElementRef<SVGElement>;
   @Input() workingBell: number = 0;
-  @ViewChild('canvas') _canvasElement!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('canvasContainer') _canvasContainer!: ElementRef<HTMLDivElement>;
+  // @ViewChild('canvas') _canvasElement!: ElementRef<HTMLCanvasElement>;
+  // @ViewChild('canvasContainer') _canvasContainer!: ElementRef<HTMLDivElement>;
   @HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
     if (["ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)) {
       event.preventDefault();
@@ -26,123 +27,147 @@ export class PracticeComponent {
     }
   }
 
-  private _canvas!: CanvasRenderingContext2D;
-  private _rowsToPrint: RowsToPrintArray= [];
-  private _nPrintRows: number = 5;
+  private _N_ROWS_TO_PRINT: number = 10;
+  private _FONT_SIZE: string = '50px Courier New';
+
+  private _CHAR_WIDTH = 30;
+  private _LINE_HEIGHT = 30;
+  private _LINE_HEIGHT_ADJUST = -10;
+  private _CHAR_WIDTH_ADJUST = 10;
+  
+  private _LEposition: number = 0;
+  private _svgNamespace = "http://www.w3.org/2000/svg";
+  private _rows: Array<SVGElement> = [];
+  private _numberXs: {[key: number]: Array<number>} = [];
+  private _paths: {[key: number]: SVGElement} = {}
+  private _currentRow?: RowToPrint;
+
   public practice!: Practice;
+  public errorCount: number = 0;
+  public keyPresses: number = 0;
 
 
   constructor(
   ) {}
 
   ngOnInit() {
-    this.practice = new Practice(this.methods, this.calls, this.workingBell);
-    this._rowsToPrint.push(this.practice.step());
+    
+    // this._rowsToPrint.push(this.practice.step());
   }
 
   ngAfterViewInit() {
-
-    this._canvas = this._canvasElement.nativeElement.getContext("2d")!;
-    this.setCanvasSize();
-    this.updateCanvas();
+    console.log(this._svgElement)
+    this.practice = new Practice(this.methods, this.calls, this.workingBell);
+    this.createPaths();
+    this._currentRow = this.practice.step()
+    this.printRow();
   }
 
-  setCanvasSize() {
-    this._canvasElement.nativeElement.width = this._canvasContainer.nativeElement.offsetWidth;
-    this._canvasElement.nativeElement.height = this._canvasContainer.nativeElement.offsetWidth*0.9;
-  }
 
-  updateCanvas() {
-    this._canvas.clearRect(0, 0, this._canvasElement.nativeElement.width, this._canvasElement.nativeElement.height);
+  printRow() {
     
-    let [x0, x, y, dx, dy] = [15, 15, 80, 20, 25];
-    let bellHistory: {[key: number]: [{x: number, y: number}]} = {};
+    let x = 0;
+    const y = (this._rows.length + 1) * this._LINE_HEIGHT;
 
-    // This block prints numbers to the screen and records position of
-    // each bell in each row so we can draw lines through them later
-    this._rowsToPrint.forEach( (row,index) => {
-      x = x0;
-      y += dy;
+    const rowText = document.createElementNS(this._svgNamespace, 'text');
+    rowText.setAttribute('y', y.toString());
+    rowText.setAttribute('font-size', '30px');
+    rowText.setAttribute('font-family', 'Courier New')
+    rowText.setAttribute('font-weight', 'lighter')
 
-      // print the leadhead line between treble leads 
-      if (row.isLeadEnd) {
-        this.drawLine("blue",[{x: x0+x, y: y+5}, {x:x0+x+dx*8, y: y+5}])
+    for (let i = 0; i < this._currentRow!.sequence.length; i++) {
+
+      const bell = this._currentRow!.sequence[i];
+      if (bell === 1 || bell === this.workingBell) {
+        if (!this._numberXs[bell]) this._numberXs[bell] = [x + this._CHAR_WIDTH_ADJUST];
+        else this._numberXs[bell].push(x + this._CHAR_WIDTH_ADJUST);
       }
 
-      // print number rows
-      this._canvas.font = '20px Courier New';
-      row.sequence.forEach( bell => {
-        x += dx;
-        if (bell === 1 || bell === this.workingBell) {
-          const {x1, x2, y1, y2} = this.getTextPosition();
-          const xy = {x: x-(x2-x1)/2, y: y+(y2-y1)/2};
-          if (index === 0) bellHistory[bell] = [xy];
-          else bellHistory[bell].push(xy);
-        }
-        if (bell === 1) this._canvas!.fillStyle = "red";
-        else this._canvas!.fillStyle = "blue"; 
-        this._canvas!.fillText(bell.toString(),x,y); 
-      })
+      const tspan = <SVGElement>document.createElementNS(this._svgNamespace, 'tspan');
+      tspan.setAttribute('x', x.toString());
+      tspan.setAttribute('fill', bell === 1 ? 'red' : 'blue');
+      tspan.textContent = bell.toString();
+      
+      rowText.appendChild(tspan)
+      x += this._CHAR_WIDTH;
 
+    }
 
-      // print any calls on this line
-      this._canvas.font = '20px Courier New';
-      if (!['','plain'].includes(row.call)) {
-        x += 2*dx;
-        this._canvas!.fillStyle = "blue"; 
-        this._canvas!.fillText(row.call,x,y); 
+    this._rows.push(<SVGElement>this._svgElement?.nativeElement.appendChild(rowText));
+
+    this.updateRows();
+    this.updateBellPaths();
+    this.updateLeadendLine();
+
+  }
+
+  createPaths() {
+    // path 0 is the LE
+    for (const bell of [0, 1, this.workingBell]) {
+      const path = <SVGElement>document.createElementNS(this._svgNamespace, 'path');
+      path.setAttribute('id', `path-${bell}`);
+      path.setAttribute('stroke', bell === 1 ? 'red' : 'blue');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('fill', 'none');
+      this._svgElement.nativeElement.appendChild(path);
+      this._paths[bell] = path;
+    }
+  }
+
+  updateLeadendLine() {
+    if (this._currentRow?.isLeadEnd) {
+      this._LEposition = (this._numberXs[1].length) * this._LINE_HEIGHT + 5;
+    } else {
+      this._LEposition -= this._LINE_HEIGHT;
+    }
+    if (this._LEposition < 0) {
+      this._paths[0].setAttribute('d', '')
+    } else {
+      const y = this._LEposition;
+      const xmax = this._CHAR_WIDTH * this.practice.numberOfBells;
+      this._paths[0].setAttribute('d',`M0,${y},L${xmax},${y}`)
+    }
+  }
+
+  // manage the number of rows displayed, deleting the uppermost when limit is reached
+  updateRows() {
+    if (this._rows.length >= this._N_ROWS_TO_PRINT) {
+      this._svgElement.nativeElement.removeChild(<SVGElement>this._rows.shift());
+      this._numberXs[1].shift();
+      this._numberXs[this.workingBell].shift(); 
+      for (let i = 0; i < this._rows.length; i++) {
+        this._rows[i].setAttribute('y',`${(i + 1) * this._LINE_HEIGHT}`)   
       }
-
-    })
-
-    // this block draws lines through desired bells
-    this.drawLine("red", bellHistory['1'])
-    this.drawLine("blue", bellHistory[this.workingBell])
+    }   
   }
 
-  getTextPosition() {
-    const textMetrics = this._canvas.measureText('8');
-    const x1 = textMetrics.actualBoundingBoxAscent;
-    const x2 = textMetrics.actualBoundingBoxDescent;
-    const y1 = textMetrics.actualBoundingBoxRight;
-    const y2 = textMetrics.actualBoundingBoxLeft;
-    return {x1, x2, y1, y2}
-  }
+  // path is recreated from scratch due to rows disappearing  
+  updateBellPaths() {
+    for (const number of [1, this.workingBell]) {
+      if (this._numberXs[number].length < 2) {
+        this._paths[number].setAttribute('d', ''); // Clear path if not enough points
+      } else {
+        const positions = this._numberXs[number];
+        const d = positions.map((x, i) => (i === 0 ? 'M' : 'L') + `${x},${(i + 1) * this._LINE_HEIGHT + this._LINE_HEIGHT_ADJUST}`).join(' ');
+        this._paths[number].setAttribute('d', d);
+      }
+    }
 
-  drawLine(lineColour: string, coordinates: Array<{x: number, y: number}>) {
-    this._canvas.beginPath();
-    this._canvas.strokeStyle = lineColour;
-    this._canvas.lineWidth = 2;
-    coordinates.forEach( (pos, i) => {
-      if (i===0) this._canvas.moveTo(pos.x,pos.y);
-      else this._canvas.lineTo(pos.x,pos.y);
-    })
-    this._canvas.stroke();
-    this._canvas.closePath();
   }
 
   processKeyEvent(receivedKeypress: string) {
     let expectedKeypress = ['ArrowLeft','ArrowDown','ArrowRight'][this.practice.workingBellNextMove+1];
+    this.keyPresses++;
     if (receivedKeypress === expectedKeypress) {
-      this._rowsToPrint.push(this.practice.step());
-      if (this._rowsToPrint.length > this._nPrintRows) this._rowsToPrint.shift();
-      this.updateCanvas();    
+      // this._rowsToPrint.push(this.practice.step());
+      // if (this._rowsToPrint.length > this._N_ROWS_TO_PRINT) this._rowsToPrint.shift();
+      this._currentRow = this.practice.step()
+      this.printRow();   
     } else {
-      this.practice.incrementErrorCount();
+      this.errorCount++;
     }
   }
 
-  left() {
-    
-  }
-
-  right() {
-
-  }
-
-  down() {
-
-  }
 }
 
 

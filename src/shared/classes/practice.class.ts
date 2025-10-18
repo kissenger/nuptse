@@ -12,7 +12,6 @@ export class Practice {
 
   private _numberOfBells: number;
   private _workingBell: number;
-  private _errorCount: number;
   private _calls: CallsObject;
   private _touchCall: 'plain'|'bob'|'single' = 'plain';
 
@@ -24,7 +23,6 @@ export class Practice {
     this._workingBell = workingBell;
     this._numberOfBells = this._methods[0].numberOfBells;
     this._rowNumber = -1;     // row number in lead (resets to 0 at each lead end)
-    this._errorCount = 0;
     this._nextRow = this._getFirstRow;  //this will become _currentRow when step() is called  
   }
 
@@ -45,9 +43,7 @@ export class Practice {
     const b = this._nextRow.findIndex(e=>e===this._workingBell); 
     return b-a;
   } 
-  public get errorCount() { return this._errorCount; }
-  public incrementErrorCount() { this._errorCount++ };
-
+  public get numberOfBells () { return this._numberOfBells; }
 
   // Step through leadend (increment row number and get next change)
   public step(): RowToPrint {

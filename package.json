@@ -8,7 +8,7 @@
     "deploy:beta": "ng build --configuration beta",
     "build:ssr": "ng build --configuration development",
     "watch:ssr": "ng build --watch --configuration development",
-    "serve": "node dist/nuptse/server/server.mjs"
+    "serve": "node dist/development/server/server.mjs"
   },
   "prettier": {
     "printWidth": 100,

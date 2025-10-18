@@ -11,7 +11,9 @@
   position: relative;
 }
 
-
+app-practice {
+  height: 100%;
+}
 .content {
   flex-grow: 1;
   display: flex;

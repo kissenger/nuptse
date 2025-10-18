@@ -25,7 +25,10 @@ export class MethodsComponent {
   }
 
   public get filteredMethods(): MethodDescriptorsArray {
-    if (this.searchString === '') return [];
+    if (this.searchString === '') {
+      if (!this.selectedMethods[0]) return METHODS_DB;
+      return [];
+    }
     return this.methods
       .filter( (m:MethodDescriptor) => m.name.toLowerCase().indexOf(this.searchString.toLowerCase())>=0)
       .filter( (m:MethodDescriptor) => !this.selectedMethods.find( ({name}) => name === m.name));

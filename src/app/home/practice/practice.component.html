@@ -1,28 +1,21 @@
-<p>
-  Use the buttons and/or arrow keys to start the practice...
-</p>
 
+<div class="practice-container">
 
-<p>
-  Starting method:<br>
-  {{methods[0].name}}
-</p>
-<p>
-  Working bell: {{workingBell}} <br>
-  Errors: {{practice.errorCount}}
-</p>
+  <div class="canvas-container" #canvasContainer>
+    Rows: {{keyPresses}}<br>
+    Errors: {{errorCount}}<br>
+    Average: {{errorCount/keyPresses*100 | number: '1.1-1'}}%
 
-<div class="canvas-container" #canvasContainer>
-  <canvas #canvas id="canvas"></canvas>
-</div>
+    <svg #svg width="300" height="600"></svg>
 
-<div class="btns">
+  </div>
 
-  <button class="left"  (click)="processKeyEvent('ArrowLeft')">&larr;</button>  
-  <button class="down"  (click)="processKeyEvent('ArrowDown')">&darr;</button>  
-  <button class="right" (click)="processKeyEvent('ArrowRight')">&rarr;</button>  
+  <div class="btns">
+    <button class="left"  (click)="processKeyEvent('ArrowLeft')">&larr;</button>  
+    <button class="down"  (click)="processKeyEvent('ArrowDown')">&darr;</button>  
+    <button class="right" (click)="processKeyEvent('ArrowRight')">&rarr;</button>  
+  </div>
 
 </div>
-
 
 
