@@ -18,8 +18,6 @@ export class PracticeComponent {
   @Input() calls: CallsObject = {plain: 100, bobs: 0, singles: 0};
   @ViewChild('svg') _svgElement!: ElementRef<SVGElement>;
   @Input() workingBell: number = 0;
-  // @ViewChild('canvas') _canvasElement!: ElementRef<HTMLCanvasElement>;
-  // @ViewChild('canvasContainer') _canvasContainer!: ElementRef<HTMLDivElement>;
   @HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
     if (["ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)) {
       event.preventDefault();
@@ -46,15 +44,6 @@ export class PracticeComponent {
   public errorCount: number = 0;
   public keyPresses: number = 0;
 
-
-  constructor(
-  ) {}
-
-  ngOnInit() {
-    
-    // this._rowsToPrint.push(this.practice.step());
-  }
-
   ngAfterViewInit() {
     console.log(this._svgElement)
     this.practice = new Practice(this.methods, this.calls, this.workingBell);
@@ -63,42 +52,62 @@ export class PracticeComponent {
     this.printRow();
   }
 
-
   printRow() {
     
     let x = 0;
     const y = (this._rows.length + 1) * this._LINE_HEIGHT;
-
-    const rowText = document.createElementNS(this._svgNamespace, 'text');
-    rowText.setAttribute('y', y.toString());
-    rowText.setAttribute('font-size', '30px');
-    rowText.setAttribute('font-family', 'Courier New')
-    rowText.setAttribute('font-weight', 'lighter')
+    console.log(y)
+    const rowSvg = document.createElementNS(this._svgNamespace, 'svg');
 
     for (let i = 0; i < this._currentRow!.sequence.length; i++) {
 
       const bell = this._currentRow!.sequence[i];
+
+      // record x position of treble and working bell
       if (bell === 1 || bell === this.workingBell) {
         if (!this._numberXs[bell]) this._numberXs[bell] = [x + this._CHAR_WIDTH_ADJUST];
         else this._numberXs[bell].push(x + this._CHAR_WIDTH_ADJUST);
       }
 
-      const tspan = <SVGElement>document.createElementNS(this._svgNamespace, 'tspan');
-      tspan.setAttribute('x', x.toString());
-      tspan.setAttribute('fill', bell === 1 ? 'red' : 'blue');
-      tspan.textContent = bell.toString();
-      
-      rowText.appendChild(tspan)
-      x += this._CHAR_WIDTH;
+      // print current bell; put a circle around working bell in first row
+      rowSvg.appendChild(this.createCharacter(x, y, bell));
+      if (bell === this.workingBell && this._rows.length === 0) {
+        rowSvg.prepend(this.createCircle(x, y));
+      }
 
+      x += this._CHAR_WIDTH;
     }
 
-    this._rows.push(<SVGElement>this._svgElement?.nativeElement.appendChild(rowText));
+    this._rows.push(<SVGElement>this._svgElement?.nativeElement.appendChild(rowSvg));
 
     this.updateRows();
     this.updateBellPaths();
     this.updateLeadendLine();
+    console.log(this._rows)
 
+  }
+
+  createCircle(x: number, y: number) {
+    const circle = <SVGElement>document.createElementNS(this._svgNamespace, 'circle');
+    circle.setAttribute('cx', (x + this._CHAR_WIDTH_ADJUST).toString());
+    circle.setAttribute('cy', (y + this._LINE_HEIGHT_ADJUST).toString());
+    circle.setAttribute('r', (this._CHAR_WIDTH/2).toString());
+    circle.setAttribute('stroke', 'blue');
+    circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('fill', 'none');
+    return circle
+  }
+
+  createCharacter(x: number, y: number, b: number) {
+    const text = <SVGElement>document.createElementNS(this._svgNamespace, 'text');
+    text.setAttribute('x', x.toString());
+    text.setAttribute('y', y.toString());
+    text.setAttribute('font-size', '30px');
+    text.setAttribute('font-family', 'Courier New')
+    text.setAttribute('font-weight', 'lighter')
+    text.setAttribute('fill', b === 1 ? 'red' : 'blue');
+    text.textContent = b.toString();
+    return text
   }
 
   createPaths() {
@@ -116,7 +125,7 @@ export class PracticeComponent {
 
   updateLeadendLine() {
     if (this._currentRow?.isLeadEnd) {
-      this._LEposition = (this._numberXs[1].length) * this._LINE_HEIGHT + 5;
+      this._LEposition = this._numberXs[1].length * this._LINE_HEIGHT + 5;
     } else {
       this._LEposition -= this._LINE_HEIGHT;
     }
@@ -136,7 +145,9 @@ export class PracticeComponent {
       this._numberXs[1].shift();
       this._numberXs[this.workingBell].shift(); 
       for (let i = 0; i < this._rows.length; i++) {
-        this._rows[i].setAttribute('y',`${(i + 1) * this._LINE_HEIGHT}`)   
+        for (let el of this._rows[i].children) {
+          el.setAttribute('y',`${(i + 1) * this._LINE_HEIGHT}`) 
+        }
       }
     }   
   }
@@ -149,6 +160,7 @@ export class PracticeComponent {
       } else {
         const positions = this._numberXs[number];
         const d = positions.map((x, i) => (i === 0 ? 'M' : 'L') + `${x},${(i + 1) * this._LINE_HEIGHT + this._LINE_HEIGHT_ADJUST}`).join(' ');
+        console.log(d)
         this._paths[number].setAttribute('d', d);
       }
     }
@@ -159,8 +171,6 @@ export class PracticeComponent {
     let expectedKeypress = ['ArrowLeft','ArrowDown','ArrowRight'][this.practice.workingBellNextMove+1];
     this.keyPresses++;
     if (receivedKeypress === expectedKeypress) {
-      // this._rowsToPrint.push(this.practice.step());
-      // if (this._rowsToPrint.length > this._N_ROWS_TO_PRINT) this._rowsToPrint.shift();
       this._currentRow = this.practice.step()
       this.printRow();   
     } else {

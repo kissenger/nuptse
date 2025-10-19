@@ -41,20 +41,15 @@ export class HomeComponent {
     this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
       if (isect.ratio > 0.2) {
         this._activeAnchor = isect.id;
-
-        this.hideBackBtn = this._activeAnchor === 'welcome';
-        this.hideFwdBtn = this._activeAnchor === 'practice';
-        this.disableFwdBtn = this._activeAnchor === 'methods' && this.selectedMethods.length === 0;
-        this.showPracticeComponent = this._activeAnchor === 'practice';
-
-        this._ref.detectChanges();    // needed to fire ngClass, not sure why
+        // this._ref.detectChanges();    // needed to fire ngClass, not sure why
       }
     })
   }
 
   scrollFwd() {
     const target = document.querySelector('#' + this.anchors.get(this._activeAnchorIndex + 1)?.nativeElement.id);
-    if (!!target) target.scrollIntoView();
+    if (!!target) target.scrollIntoView({ behavior: "smooth", inline: 
+  "center" });
   }
 
   scrollBack() {

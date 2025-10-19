@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
 export class MethodsComponent {
 
   @Output() methodsArrayUpdated = new EventEmitter<MethodDescriptorsArray>();
+  @Output() scrollTo = new EventEmitter<string>();
 
   public selectedMethods: MethodDescriptorsArray = [];
   public searchString: string = '';
@@ -39,6 +40,10 @@ export class MethodsComponent {
     else this.selectedMethods = this.selectedMethods.filter(({name}) => name !== m.name)
     this.searchString = '';
     this.methodsArrayUpdated.emit(this.selectedMethods);
+  }
+
+  scrollFwd() {
+    this.scrollTo.emit('fwd');
   }
 
   closeList() {

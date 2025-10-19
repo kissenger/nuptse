@@ -1,7 +1,20 @@
 
-.anchor {
+app-practice {
   height: 100%;
   width: 100%;
+}
+
+.container {
+  border: orange solid 1px;
+  height: 100dvh;
+  width: 400vw;
+  /* display: flex;
+  flex-direction: row ; */
+}
+
+.anchor {
+  height: 100%;
+  width: 100vw;
   margin: 0rem;
   padding: 1rem;
   border: red solid 1px;
@@ -11,32 +24,24 @@
   position: relative;
 }
 
-app-practice {
-  height: 100%;
-}
-.content {
-  flex-grow: 1;
+.content{
   display: flex;
-  flex-direction: column;
+  flex-grow: 1;
+  border: blue solid 1px;
 }
 
-button {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
-  position: fixed;
-  right: 10px;
-  z-index: 100;
+.buttons {
+  display: flex;
+  width: 100%;
+  border: green solid 1px;
+
 }
 
-.hide {
-  display: none;
+.one-btn-centered {
+  width: 50%;
+  border-radius: 5px;
+  margin: auto;
+  background-color: darkorange;
 }
 
-.fwd {
-  bottom: 10px;
-}
 
-.back {
-  top: 10px;
-}

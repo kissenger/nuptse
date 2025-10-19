@@ -1,30 +1,35 @@
 
-<button [class.hide]="hideBackBtn" class="back" (click)="scrollBack()">&uarr;</button>  
-<button [disabled]="disableFwdBtn" [class.hide]="hideFwdBtn"  class="fwd"  (click)="scrollFwd()">&darr;</button>  
 
-<div #anchor class="anchor" id="welcome">
-  
-  <div class="page-container">
-    Welcome to Practice Night, where you can practice your favourite ringing methods
-    and calls until you're ready for that special performance.  Select any combination
-    of methods and calls, and Practice Night will mix things up so you can get those tricky
-    lead end changes firmly planted in your head!
+<div class="container">
+    
+  <div #anchor class="anchor" id="welcome">
+    
+    <div class="content">
+      Welcome to Practice Night, where you can practice your favourite ringing methods
+      and calls until you're ready for that special performance.  Select any combination
+      of methods and calls, and Practice Night will mix things up so you can get those tricky
+      lead end changes firmly planted in your head!
+    </div>
+    <div class="buttons"> 
+      <button class="one-btn-centered"  (click)="scrollFwd()">Next</button>  
+    </div>
+
   </div>
 
-</div>
+  <!-- <div #anchor class="anchor" id="methods">
+    <app-methods (methodsArrayUpdated)="onMethodsChange($event)"></app-methods>
+  </div> -->
+<!-- 
+  <div #anchor #calls class="anchor" id="calls">
+    <app-calls [numberOfBells]="numberOfBells" (callsUpdated)="onCallsChange($event)" (workingBellUpdated)="onWorkingBellUpdate($event)"></app-calls>
+  </div>
 
-<div #anchor class="anchor" id="methods">
-  <app-methods (methodsArrayUpdated)="onMethodsChange($event)"></app-methods>
-</div>
+  <div #anchor #practice class="anchor" id="practice">
+    @if (showPracticeComponent) {
+      <app-practice [methods]="selectedMethods" [calls]="selectedCalls" [workingBell]="workingBell" ></app-practice>
+    }
+  </div> -->
 
-<div #anchor #calls class="anchor" id="calls">
-  <app-calls [numberOfBells]="numberOfBells" (callsUpdated)="onCallsChange($event)" (workingBellUpdated)="onWorkingBellUpdate($event)"></app-calls>
-</div>
-
-<div #anchor #practice class="anchor" id="practice">
-  @if (showPracticeComponent) {
-    <app-practice [methods]="selectedMethods" [calls]="selectedCalls" [workingBell]="workingBell" ></app-practice>
-  }
 </div>
 
 
