@@ -1,21 +1,28 @@
 .content > * {
   display: block;
 }
+
+.form {
+  margin-top: 1rem;
+}
+
 input {
   width: 100%;
 }
 
 .list-container {
   position: relative;
-
+  flex-grow: 1;
+  /* border: 1px red solid; */
 }
 
 .list {
   width: 100%;
+  /* height: 100%; */
   padding: 0;
   margin: 0;
-  min-height: 0vh; 
-  max-height: 60vh;
+  min-height: 0; 
+  max-height: 100%;
   overflow-y: scroll;
   background-color: white;
 }
@@ -24,15 +31,23 @@ input {
   position: absolute;
   top: 0;
   left: 0;
+  /* height: 100%; */
+  min-height: 0; 
+  max-height: 100%;
+  background-color: gainsboro;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border: 1px grey solid;
+  /* padding-bottom: 1rem; */
 }
 
 .list > li {
   list-style-type: none;
   line-height: 1.5rem;
-  border-top: 1px lightgray solid;
+  /* border-top: 1px grey solid; */
   background-color: whitesmoke;
 }
 
-.list > li:last-child {
-  border-bottom: 1px lightgray solid;
+.list > li:nth-child(even) {
+  background-color: gainsboro;
 }

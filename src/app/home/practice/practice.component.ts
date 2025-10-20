@@ -64,7 +64,7 @@ export class PracticeComponent implements OnChanges{
   }
 
   initSvg() {
-    this.resizeSvg(this.practice.numberOfBells * this._CHAR_WIDTH, this._LINE_HEIGHT + 10);
+    // this.resizeSvg(this.practice.numberOfBells * this._CHAR_WIDTH, this._LINE_HEIGHT *2);
     this.createPaths();
   }
 
@@ -169,7 +169,7 @@ export class PracticeComponent implements OnChanges{
         }
       }
     }
-    this.resizeSvg(this.practice.numberOfBells * this._CHAR_WIDTH, this._LINE_HEIGHT * this._rows.length);
+    this.resizeSvg(this.practice.numberOfBells * this._CHAR_WIDTH, this._LINE_HEIGHT * this._rows.length+10);
   }
 
   // path is recreated from scratch due to rows disappearing  

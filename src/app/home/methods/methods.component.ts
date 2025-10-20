@@ -18,6 +18,7 @@ export class MethodsComponent {
   @Output() methodsArrayUpdated = new EventEmitter<MethodDescriptorsArray>();
 
   public selectedMethods: MethodDescriptorsArray = [];
+  public filteredMethods: MethodDescriptorsArray = [];
   public searchString: string = '';
 
   constructor(
@@ -29,15 +30,19 @@ export class MethodsComponent {
     return METHODS_DB.filter(( m:MethodDescriptor) => m.stage===this.selectedMethods[0]?.stage);
   }
 
-  public get filteredMethods(): MethodDescriptorsArray {
-    if (this.searchString === '') {
-      if (!this.selectedMethods[0]) return METHODS_DB;
-      return [];
-    }
-    return this.methods
+  public applyFilter() {
+    this.filteredMethods = this.methods
       .filter( (m:MethodDescriptor) => m.name.toLowerCase().indexOf(this.searchString.toLowerCase())>=0)
       .filter( (m:MethodDescriptor) => !this.selectedMethods.find( ({name}) => name === m.name));
   } 
+
+  onFocus() {
+    this.applyFilter();
+  }
+
+  onBlur() {
+    this.filteredMethods = [];
+  }
 
   updateSelectedMethods(m:MethodDescriptor,operation:'add'|'remove') {
     if (operation === 'add') this.selectedMethods.push(m);
