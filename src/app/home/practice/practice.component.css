@@ -4,29 +4,33 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  /* border: 1px green solid; */
 }
 
 svg {
-  border: 1px blueviolet solid;
+  display: flex;
+  margin-block: 1rem;
+  margin-inline: auto;
 }
 
-.btns {
+.callbox {
+  display: flex;
+  color: blue;
+  font-family: 'Courier New';
+  font-size: 25px;
+  margin-block: 1rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.arrow-btns {
   width: 100%;
   height: 15%;
   display: flex;
   flex-direction: row;
+  justify-content: space-evenly;
+  margin-block: 2rem;
 }
 
-.left {
-  width: 30%;
-}
-
-.down {
-  width: 30%;
-  margin-inline: auto;
-}
-
-.right {
+.arrow-btns > button {
   width: 30%;
 }

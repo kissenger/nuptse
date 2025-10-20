@@ -1,8 +1,9 @@
-import { Component, ElementRef, HostListener, Input, ViewChild} from '@angular/core';
+import { Component, ElementRef, HostListener, Input, OnChanges, ViewChild} from '@angular/core';
 import { BellPositionHistory, CallsObject, MethodDescriptorsArray,RowsToPrintArray, RowToPrint } from '@shared/types';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { Practice } from '@shared/classes/practice.class';
+import { NavService } from '@shared/services/nav.service';
 
 @Component({
   selector: 'app-practice',
@@ -12,12 +13,14 @@ import { Practice } from '@shared/classes/practice.class';
   standalone: true
 })
 
-export class PracticeComponent {
+export class PracticeComponent implements OnChanges{
 
+  @ViewChild('svg') _svgElement!: ElementRef<SVGElement>;
+  
   @Input() methods: MethodDescriptorsArray = [];
   @Input() calls: CallsObject = {plain: 100, bobs: 0, singles: 0};
-  @ViewChild('svg') _svgElement!: ElementRef<SVGElement>;
   @Input() workingBell: number = 0;
+  
   @HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
     if (["ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)) {
       event.preventDefault();
@@ -26,8 +29,6 @@ export class PracticeComponent {
   }
 
   private _N_ROWS_TO_PRINT: number = 10;
-  private _FONT_SIZE: string = '50px Courier New';
-
   private _CHAR_WIDTH = 30;
   private _LINE_HEIGHT = 30;
   private _LINE_HEIGHT_ADJUST = -10;
@@ -38,30 +39,44 @@ export class PracticeComponent {
   private _rows: Array<SVGElement> = [];
   private _numberXs: {[key: number]: Array<number>} = [];
   private _paths: {[key: number]: SVGElement} = {}
-  private _currentRow?: RowToPrint;
-
+  
+  public currentRow?: RowToPrint;
   public practice!: Practice;
   public errorCount: number = 0;
   public keyPresses: number = 0;
+  public call: string = '';
+
+  constructor(
+    public nav: NavService
+  ) {
+
+  }
+
+  ngOnChanges() {
+    this.practice = new Practice(this.methods, this.calls, this.workingBell);
+    this.currentRow = this.practice.step();
+    this.call = this.currentRow.call;
+  }
 
   ngAfterViewInit() {
-    console.log(this._svgElement)
-    this.practice = new Practice(this.methods, this.calls, this.workingBell);
-    this.createPaths();
-    this._currentRow = this.practice.step()
+    this.initSvg();
     this.printRow();
+  }
+
+  initSvg() {
+    this.resizeSvg(this.practice.numberOfBells * this._CHAR_WIDTH, this._LINE_HEIGHT + 10);
+    this.createPaths();
   }
 
   printRow() {
     
     let x = 0;
     const y = (this._rows.length + 1) * this._LINE_HEIGHT;
-    console.log(y)
     const rowSvg = document.createElementNS(this._svgNamespace, 'svg');
 
-    for (let i = 0; i < this._currentRow!.sequence.length; i++) {
+    for (let i = 0; i < this.currentRow!.sequence.length; i++) {
 
-      const bell = this._currentRow!.sequence[i];
+      const bell = this.currentRow!.sequence[i];
 
       // record x position of treble and working bell
       if (bell === 1 || bell === this.workingBell) {
@@ -83,7 +98,6 @@ export class PracticeComponent {
     this.updateRows();
     this.updateBellPaths();
     this.updateLeadendLine();
-    console.log(this._rows)
 
   }
 
@@ -123,8 +137,13 @@ export class PracticeComponent {
     }
   }
 
+  resizeSvg(w: number, h: number) {
+    this._svgElement.nativeElement.setAttribute('width',`${w}`);
+    this._svgElement.nativeElement.setAttribute('height',`${h}`);
+  }
+
   updateLeadendLine() {
-    if (this._currentRow?.isLeadEnd) {
+    if (this.currentRow?.isLeadEnd) {
       this._LEposition = this._numberXs[1].length * this._LINE_HEIGHT + 5;
     } else {
       this._LEposition -= this._LINE_HEIGHT;
@@ -149,7 +168,8 @@ export class PracticeComponent {
           el.setAttribute('y',`${(i + 1) * this._LINE_HEIGHT}`) 
         }
       }
-    }   
+    }
+    this.resizeSvg(this.practice.numberOfBells * this._CHAR_WIDTH, this._LINE_HEIGHT * this._rows.length);
   }
 
   // path is recreated from scratch due to rows disappearing  
@@ -160,7 +180,6 @@ export class PracticeComponent {
       } else {
         const positions = this._numberXs[number];
         const d = positions.map((x, i) => (i === 0 ? 'M' : 'L') + `${x},${(i + 1) * this._LINE_HEIGHT + this._LINE_HEIGHT_ADJUST}`).join(' ');
-        console.log(d)
         this._paths[number].setAttribute('d', d);
       }
     }
@@ -171,7 +190,9 @@ export class PracticeComponent {
     let expectedKeypress = ['ArrowLeft','ArrowDown','ArrowRight'][this.practice.workingBellNextMove+1];
     this.keyPresses++;
     if (receivedKeypress === expectedKeypress) {
-      this._currentRow = this.practice.step()
+      this.currentRow = this.practice.step()
+      this.call = this.currentRow.call === 'plain' ? '' : this.currentRow.call;
+      console.log(this.currentRow)
       this.printRow();   
     } else {
       this.errorCount++;

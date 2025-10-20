@@ -64,7 +64,6 @@ export class Practice {
     } 
     if (this.isCallRow) callString = this._getTouchCall;
     if (this.isMethodChangeRow) {
-      console.log(this._nextMethod)
       if (this._nextMethod!.name !== this._currentMethod?.name) {
         callString = this._nextMethod!.name.split(' ')[0];
       }   

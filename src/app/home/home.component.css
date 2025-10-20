@@ -1,47 +1,65 @@
+/* Overflow needs to be set to auto to enable intersectionObserver to work with horizontal scrolling */
+.root-container {
+  width: 100vw;
+  height: 100vh;
+  overflow-x: auto; 
+}
 
-app-practice {
-  height: 100%;
-  width: 100%;
+/* These styles then remove the scroll bar */
+.root-container::-webkit-scrollbar { /* For WebKit browsers (Chrome, Safari, newer Edge) */
+  display: none;
+  width: 0; /* Ensures there is no empty space left by the scrollbar */
+  height: 0;
+}
+
+.root-container { /* For Firefox */
+  scrollbar-width: none;
+}
+
+
+.root-container { /* For Internet Explorer and legacy Edge */
+  -ms-overflow-style: none;
 }
 
 .container {
-  border: orange solid 1px;
-  height: 100dvh;
-  width: 400vw;
-  /* display: flex;
-  flex-direction: row ; */
+  display: grid;  
+  grid-auto-flow: column;
+  grid-auto-columns: 100vw;
+  height: 100vh;
+  /* overflow-x: hidden;  
+  overflow-y: hidden;   */
 }
 
-.anchor {
+
+.subcontainer {
   height: 100%;
   width: 100vw;
+  display: flex;  
   margin: 0rem;
   padding: 1rem;
-  border: red solid 1px;
-  display: flex;
   box-sizing: border-box;
   flex-direction: column;
   position: relative;
 }
 
-.content{
+.generic-flex-grow-container {
   display: flex;
+  flex-direction: column;
   flex-grow: 1;
-  border: blue solid 1px;
 }
 
-.buttons {
+.nav-btn-container {
   display: flex;
+  justify-content: space-evenly;
   width: 100%;
-  border: green solid 1px;
-
 }
 
-.one-btn-centered {
-  width: 50%;
+.nav-btns {
   border-radius: 5px;
+  width: 45%;
   margin: auto;
   background-color: darkorange;
 }
+
 
 

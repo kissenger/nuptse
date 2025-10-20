@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, ViewChildren, QueryList, ChangeDetectorRef, ViewEncapsulation, ViewChild } from '@angular/core';
 import { ScrollspyService } from '../../shared/services/scrollspy.service';
 import { CommonModule } from '@angular/common';
 
@@ -6,22 +6,21 @@ import { MethodsComponent } from './methods/methods.component';
 import { PracticeComponent } from "./practice/practice.component";
 import { CallsComponent } from "./calls/calls.component";
 import { CallsObject, MethodDescriptorsArray } from '@shared/types';
+import { NavService } from '@shared/services/nav.service';
 
 @Component({
   selector: 'app-home',
   imports: [CommonModule, MethodsComponent, PracticeComponent, CallsComponent],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  styleUrl: './home.component.css',
+  encapsulation: ViewEncapsulation.None
 })
 
 export class HomeComponent {
 
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
+  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   
-  private _activeAnchor: string = '';
-  private get _activeAnchorIndex() { 
-    return this.anchors.toArray().findIndex(a => a.nativeElement.id === this._activeAnchor) 
-  }; 
   public selectedMethods: MethodDescriptorsArray = [];
   public selectedCalls: CallsObject = {plain: 100, bobs: 0, singles: 0};
   public numberOfBells: number = 0;
@@ -32,34 +31,26 @@ export class HomeComponent {
   public workingBell: number = 5;
 
   constructor(
+    public nav: NavService,
     private _scrollSpy: ScrollspyService,
-    private _ref: ChangeDetectorRef,
+    private _ref: ChangeDetectorRef
   ) {}
     
   ngAfterViewInit(): void {
-    this._scrollSpy.observeChildren(this.anchors); 
+    this.nav.setAnchors(this.anchors);
+    this.nav.scrollTo('home');
+    this._scrollSpy.init(this.anchors, this.scrollContainer); 
     this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
       if (isect.ratio > 0.2) {
-        this._activeAnchor = isect.id;
-        // this._ref.detectChanges();    // needed to fire ngClass, not sure why
+        this.showPracticeComponent = isect.id === 'practice'
+        this._ref.detectChanges();    // needed to fire ngClass, not sure why
       }
     })
   }
 
-  scrollFwd() {
-    const target = document.querySelector('#' + this.anchors.get(this._activeAnchorIndex + 1)?.nativeElement.id);
-    if (!!target) target.scrollIntoView({ behavior: "smooth", inline: 
-  "center" });
-  }
-
-  scrollBack() {
-    const target = document.querySelector('#' + this.anchors.get(this._activeAnchorIndex - 1)?.nativeElement.id);
-    if (!!target) target.scrollIntoView();
-  }
 
   onMethodsChange(ms: MethodDescriptorsArray) {
     this.selectedMethods = ms;
-    this.disableFwdBtn = this._activeAnchor === 'methods' && this.selectedMethods.length === 0;
     this.numberOfBells = this.nBells(ms[0].stage);
   }
 

@@ -1,37 +1,38 @@
 
-  <div class="content">
-    Welcome to Practice Night, where you can practice your favourite ringing methods
-    and calls until you're ready for that special performance.  Select any combination
-    of methods and calls, and Practice Night will mix things up so you can get those tricky
-    lead end changes firmly planted in your head!
+
+<div class="subcontainer">
+  <div class="generic-flex-grow-container">
+
+    <form class="form">    
+      <label for="inputSearch">Select method(s) to add:</label><br>
+      <input [(ngModel)]="searchString" autocomplete="off"  
+        name="inputSearch" id="inputSearch" placeholder="Type to filter ..." autofocus>
+    </form>
+
+    <div class="list-container">
+      <ul class="list popover">
+        @for (m of filteredMethods; track m) {
+          <li (click)="updateSelectedMethods(m,'add')">{{m.name}}</li>
+        }
+      </ul>
+    </div>
+
+    <div class="top-margin">
+      Selected Methods:
+      <ul class="list">
+        @for (m of selectedMethods; track m) {
+          <li (click)="updateSelectedMethods(m,'remove')">{{m.name}}</li>
+        }
+      </ul>
+    </div>
+
   </div>
-  <div class="buttons"> 
-    <button class="two-btns-left"  (click)="scrollTo.emit('calls')">Next</button>  
-    <button class="two-btns-right"  (click)="scrollTo.emit('calls')">Next</button>  
+
+  <div class="nav-btn-container"> 
+    <button class="nav-btns"  (click)="nav.scrollTo('home')">Back</button>  
+    <button class="nav-btns" [disabled]="selectedMethods.length===0" (click)="nav.scrollTo('calls')">Next</button>  
   </div>
-
-
-<form>    
-  <label for="inputSearch">Select method(s) to add:</label><br>
-  <input [(ngModel)]="searchString" autocomplete="off"  
-    name="inputSearch" id="inputSearch" placeholder="Type to filter ..." autofocus>
-</form>
-
-<div class="list-container">
-  <ul class="list popover">
-    @for (m of filteredMethods; track m) {
-      <li (click)="updateSelectedMethods(m,'add')">{{m.name}}</li>
-    }
-  </ul>
 </div>
 
-<div class="top-margin">
-  Selected Methods:
-  <ul class="list">
-    @for (m of selectedMethods; track m) {
-      <li (click)="updateSelectedMethods(m,'remove')">{{m.name}}</li>
-    }
-  </ul>
-</div>
 
 

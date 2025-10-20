@@ -1,21 +1,35 @@
 
-<div class="practice-container">
+<div class="subcontainer">
+  <div class="generic-flex-grow-container">
 
-  <div class="canvas-container" #canvasContainer>
-    Rows: {{keyPresses}}<br>
-    Errors: {{errorCount}}<br>
-    Average: {{errorCount/keyPresses*100 | number: '1.1-1'}}%
+    <div class="practice-container">
 
-    <svg #svg width="300" height="600"></svg>
+      <div class="generic-flex-grow-container">
+        Rows: {{keyPresses}}<br>
+        Errors: {{errorCount}}<br>
+        Average: {{errorCount/keyPresses*100 | number: '1.1-1'}}%<br>
+        <br>
+        
+        <svg #svg height="200" width="200"></svg>
 
+        <div class="callbox">
+          {{call}}
+        </div>
+        
+      </div>
+
+      <div class="arrow-btns">
+        <button (click)="processKeyEvent('ArrowLeft')">&larr;</button>  
+        <button (click)="processKeyEvent('ArrowDown')">&darr;</button>  
+        <button (click)="processKeyEvent('ArrowRight')">&rarr;</button>  
+      </div>
+
+    </div>
   </div>
 
-  <div class="btns">
-    <button class="left"  (click)="processKeyEvent('ArrowLeft')">&larr;</button>  
-    <button class="down"  (click)="processKeyEvent('ArrowDown')">&darr;</button>  
-    <button class="right" (click)="processKeyEvent('ArrowRight')">&rarr;</button>  
+  <div class="nav-btn-container"> 
+    <button class="nav-btns"  (click)="nav.scrollTo('calls')">Back</button>  
   </div>
-
 </div>
 
 

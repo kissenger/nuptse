@@ -4,7 +4,6 @@ html {
   font-weight: 300;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   scroll-behavior: smooth;
-  border: 2px purple dotted;
 
 }
 
@@ -15,7 +14,6 @@ body {
   overflow-y: hidden;   */
   width: 100vw;
   height: 100dvh;
-  border: 1px red dashed;
 }
 
 /* ensure form elements have same font*/

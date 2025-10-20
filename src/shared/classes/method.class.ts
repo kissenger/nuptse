@@ -78,7 +78,6 @@ export class Method {
       }
       outArr = [...outArr, ...arr];
     })
-    console.log([...outArr])
     return outArr;
   }
 

@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CallsObject } from '@shared/types';
+import { NavService } from '@shared/services/nav.service';
 
 @Component({
   selector: 'app-calls',
@@ -28,6 +29,10 @@ export class CallsComponent {
   public selectedWorkingBell: string = 'Random';
   public get workingBellSelectionArray() {return ['Random',...[...Array(this.numberOfBells)].map((n,i)=>`${i+1}`)]};
 
+  constructor(
+    public nav: NavService
+  ) {}
+  
   public onBobSelect() {
     if (this.singles === 'Lots' && this.bobs === 'Lots') this.singles = 'Some';
     this.callsUpdated.emit(this.calls);

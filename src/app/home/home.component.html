@@ -1,25 +1,26 @@
 
 
+<div #scrollContainer class="root-container">
 <div class="container">
     
-  <div #anchor class="anchor" id="welcome">
+  <div #anchor class="anchor subcontainer" id="home">
     
-    <div class="content">
+    <div class="generic-flex-grow-container">
       Welcome to Practice Night, where you can practice your favourite ringing methods
       and calls until you're ready for that special performance.  Select any combination
       of methods and calls, and Practice Night will mix things up so you can get those tricky
       lead end changes firmly planted in your head!
     </div>
-    <div class="buttons"> 
-      <button class="one-btn-centered"  (click)="scrollFwd()">Next</button>  
+    <div class="nav-btn-container"> 
+      <button class="nav-btns"  (click)="nav.scrollTo('methods')">Start</button>  
     </div>
 
   </div>
 
-  <!-- <div #anchor class="anchor" id="methods">
+  <div #anchor class="anchor" id="methods">
     <app-methods (methodsArrayUpdated)="onMethodsChange($event)"></app-methods>
-  </div> -->
-<!-- 
+  </div>
+
   <div #anchor #calls class="anchor" id="calls">
     <app-calls [numberOfBells]="numberOfBells" (callsUpdated)="onCallsChange($event)" (workingBellUpdated)="onWorkingBellUpdate($event)"></app-calls>
   </div>
@@ -28,9 +29,9 @@
     @if (showPracticeComponent) {
       <app-practice [methods]="selectedMethods" [calls]="selectedCalls" [workingBell]="workingBell" ></app-practice>
     }
-  </div> -->
+  </div>
 
 </div>
-
+</div>
 
 
