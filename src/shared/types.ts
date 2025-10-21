@@ -1,7 +1,7 @@
 import { Method } from "./classes/method.class";
 
 export type RowsToPrintArray = Array<RowToPrint>;
-export type RowToPrint = {sequence: Array<number>, isLeadEnd: boolean, call: string};
+export type RowToPrint = {sequence: Array<string>, isLeadEnd: boolean, call: string};
 
 export type placebellArray = Array<Array<number>>
 export type placebellObject = {
@@ -12,7 +12,6 @@ export type placebellObject = {
 
 export interface MethodDescriptor {
   name: string,
-  stage: string,
   notation: string,
   calls?: {
     [key: string]: string;

@@ -1,37 +1,38 @@
 <div class="subcontainer">
-  <div class="generic-flex-grow-container">
-    <form>
-    
-      <p>
-        <label for="selectBell">Choose working bell:</label><br>
+  <div class="generic-flex-grow-container grid">
+
+      <div class="grid-cell grid-margin">
+        <label for="selectBell">Working bell:</label>
+      </div>
+      <div class="grid-cell grid-margin">
         <select #selectWorkingBell [(ngModel)]="selectedWorkingBell" (click)="onBellSelect()" name="selectBell" id="selectBell">
-          @for(wbOption of workingBellSelectionArray; track wbOption) {
+          @for(wbOption of workingBellOptions; track wbOption) {
             <option value="{{wbOption}}">{{wbOption}}</option>
           }
         </select>
-      </p>
+      </div>
 
-      <p>
+      <div class="grid-cell grid-margin">
         <label for="selectBobs">Bobs:</label>
+      </div>
+      <div class="grid-cell grid-margin">
         <select #selectBobs [(ngModel)]="bobs" (change)="onBobSelect()" name="selectBobs" id="selectBobs">
           @for(callOption of callOptions; track callOption) {
             <option value="{{callOption}}"> {{callOption}} </option>
           }
         </select>
+      </div>
 
+      <div class="grid-cell">
         <label for="selectSingles">Singles:</label>
+      </div>
+      <div class="grid-cell">
         <select #selectSingles [(ngModel)]="singles" (change)="onSingleSelect()" name="selectSingles" id="selectSingles">
           @for(callOption of callOptions; track callOption) {
             <option value="{{callOption}}"> {{callOption}} </option>
           }
         </select>
-
-        Percentage plain leads: {{calls.plain}}
-        Percentage bob leads: {{calls.bobs}}
-        Percentage single leads: {{calls.singles}}
-      </p>
-    </form>
-
+      </div>
   </div>
 
   <div class="nav-btn-container"> 

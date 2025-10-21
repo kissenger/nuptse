@@ -1,0 +1,20 @@
+
+.grid {
+  display: grid;
+  grid-auto-rows: min-content;
+  grid-template-columns: max-content 1fr;
+}
+
+/* Styling for the cells */
+.grid-cell {
+  padding: 10px;
+}
+
+/* Ensuring the Select element takes full column width */
+.grid-cell select {
+  width: 100%;
+}
+
+.grid-margin {
+  margin-top: 1rem;
+}

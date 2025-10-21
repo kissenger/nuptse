@@ -6,10 +6,14 @@
   <div #anchor class="anchor subcontainer" id="home">
     
     <div class="generic-flex-grow-container">
-      Welcome to Practice Night, where you can practice your favourite ringing methods
-      and calls until you're ready for that special performance.  Select any combination
-      of methods and calls, and Practice Night will mix things up so you can get those tricky
-      lead end changes firmly planted in your head!
+        Welcome to Practice Night!
+      <p>
+        Practice Night helps you practice multiple (spliced) change ringing methods, including 
+        bobs and singles if desired.
+      </p>
+        A word of warning though, this is not for the purists. Practice Night make no attempt
+        to generate a 'true' set of changes.  The touches are randomly generated to help
+        remember the shape of changes over a leadend.  
     </div>
     <div class="nav-btn-container"> 
       <button class="nav-btns"  (click)="nav.scrollTo('methods')">Start</button>  
@@ -22,7 +26,7 @@
   </div>
 
   <div #anchor #calls class="anchor" id="calls">
-    <app-calls [numberOfBells]="numberOfBells" (callsUpdated)="onCallsChange($event)" (workingBellUpdated)="onWorkingBellUpdate($event)"></app-calls>
+    <app-options [numberOfBells]="numberOfBells" (callsUpdated)="onCallsChange($event)" (workingBell)="onWorkingBellUpdate($event)"></app-options>
   </div>
 
   <div #anchor #practice class="anchor" id="practice">

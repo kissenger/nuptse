@@ -1,5 +1,6 @@
 
 import { MethodDescriptor, placebellArray, placebellObject } from "../types";
+import { Utility } from '@shared/classes/utilities.class';
 
 export class Method {
   private _name: string;
@@ -13,7 +14,7 @@ export class Method {
   constructor(method: MethodDescriptor) {
     this._name = method.name;
     this._placeNotation = method.notation;
-    this._numberOfBells = this._nBells(method.stage);
+    this._numberOfBells = Utility.nBells(method.name);
     this._isEven = this._numberOfBells % 2 === 0;
     this._plainCourse = this._getPlainCourse(method.notation);
     this._calls = this._getCalls(this._plainCourse);
@@ -22,6 +23,7 @@ export class Method {
       bob:   this._getBobOrSingleCourse(this._plainCourse,this._calls,'bob'),
       single: this._getBobOrSingleCourse(this._plainCourse,this._calls,'single')
     }
+    console.log(this._placebellObject)
   }
 
   /*
@@ -55,6 +57,8 @@ export class Method {
         if ('x-'.includes(char)) array.push([]);
         placeBells = [];
       } else {
+        // notation must be numerical as relies on array element numbers
+        placeBells.push(Utility.charToNumb(char));
         if (char === '0') placeBells.push(10);
         else if (char === 'E') placeBells.push(11);
         else if (char === 'T') placeBells.push(12);
@@ -152,21 +156,4 @@ export class Method {
 
   }
     
-
-  private _nBells(stage:string): number {
-    switch (stage) {
-      case 'Maximus': return 12;
-      case 'Cinques': return 11;
-      case 'Royal':   return 10;
-      case 'Caters':  return 9;
-      case 'Major':   return 8;
-      case 'Triples': return 7;
-      case 'Minor':   return 6;
-      case 'Doubles': return 5;
-      default: return 0;
-    }
-  }
-
-
-
 }

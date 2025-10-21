@@ -19,7 +19,7 @@ export class PracticeComponent implements OnChanges{
   
   @Input() methods: MethodDescriptorsArray = [];
   @Input() calls: CallsObject = {plain: 100, bobs: 0, singles: 0};
-  @Input() workingBell: number = 0;
+  @Input() workingBell: string = '';
   
   @HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
     if (["ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)) {
@@ -37,8 +37,8 @@ export class PracticeComponent implements OnChanges{
   private _LEposition: number = 0;
   private _svgNamespace = "http://www.w3.org/2000/svg";
   private _rows: Array<SVGElement> = [];
-  private _numberXs: {[key: number]: Array<number>} = [];
-  private _paths: {[key: number]: SVGElement} = {}
+  private _numbers: {[key: string]: Array<number>} = {};
+  private _paths: {[key: string]: SVGElement} = {}
   
   public currentRow?: RowToPrint;
   public practice!: Practice;
@@ -60,6 +60,7 @@ export class PracticeComponent implements OnChanges{
 
   ngAfterViewInit() {
     this.initSvg();
+    console.log(this.currentRow)
     this.printRow();
   }
 
@@ -79,9 +80,9 @@ export class PracticeComponent implements OnChanges{
       const bell = this.currentRow!.sequence[i];
 
       // record x position of treble and working bell
-      if (bell === 1 || bell === this.workingBell) {
-        if (!this._numberXs[bell]) this._numberXs[bell] = [x + this._CHAR_WIDTH_ADJUST];
-        else this._numberXs[bell].push(x + this._CHAR_WIDTH_ADJUST);
+      if (bell === '1' || bell === this.workingBell) {
+        if (!this._numbers[bell]) this._numbers[bell] = [x + this._CHAR_WIDTH_ADJUST];
+        else this._numbers[bell].push(x + this._CHAR_WIDTH_ADJUST);
       }
 
       // print current bell; put a circle around working bell in first row
@@ -112,14 +113,14 @@ export class PracticeComponent implements OnChanges{
     return circle
   }
 
-  createCharacter(x: number, y: number, b: number) {
+  createCharacter(x: number, y: number, b: string) {
     const text = <SVGElement>document.createElementNS(this._svgNamespace, 'text');
     text.setAttribute('x', x.toString());
     text.setAttribute('y', y.toString());
     text.setAttribute('font-size', '30px');
     text.setAttribute('font-family', 'Courier New')
     text.setAttribute('font-weight', 'lighter')
-    text.setAttribute('fill', b === 1 ? 'red' : 'blue');
+    text.setAttribute('fill', b === '1' ? 'red' : 'blue');
     text.textContent = b.toString();
     return text
   }
@@ -144,7 +145,7 @@ export class PracticeComponent implements OnChanges{
 
   updateLeadendLine() {
     if (this.currentRow?.isLeadEnd) {
-      this._LEposition = this._numberXs[1].length * this._LINE_HEIGHT + 5;
+      this._LEposition = this._numbers['1'].length * this._LINE_HEIGHT + 5;
     } else {
       this._LEposition -= this._LINE_HEIGHT;
     }
@@ -161,8 +162,8 @@ export class PracticeComponent implements OnChanges{
   updateRows() {
     if (this._rows.length >= this._N_ROWS_TO_PRINT) {
       this._svgElement.nativeElement.removeChild(<SVGElement>this._rows.shift());
-      this._numberXs[1].shift();
-      this._numberXs[this.workingBell].shift(); 
+      this._numbers[1].shift();
+      this._numbers[this.workingBell].shift(); 
       for (let i = 0; i < this._rows.length; i++) {
         for (let el of this._rows[i].children) {
           el.setAttribute('y',`${(i + 1) * this._LINE_HEIGHT}`) 
@@ -175,10 +176,10 @@ export class PracticeComponent implements OnChanges{
   // path is recreated from scratch due to rows disappearing  
   updateBellPaths() {
     for (const number of [1, this.workingBell]) {
-      if (this._numberXs[number].length < 2) {
+      if (this._numbers[number].length < 2) {
         this._paths[number].setAttribute('d', ''); // Clear path if not enough points
       } else {
-        const positions = this._numberXs[number];
+        const positions = this._numbers[number];
         const d = positions.map((x, i) => (i === 0 ? 'M' : 'L') + `${x},${(i + 1) * this._LINE_HEIGHT + this._LINE_HEIGHT_ADJUST}`).join(' ');
         this._paths[number].setAttribute('d', d);
       }

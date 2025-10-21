@@ -1,8 +1,5 @@
-.content > * {
-  display: block;
-}
 
-.form {
+.methods-form {
   margin-top: 1rem;
 }
 
@@ -12,18 +9,21 @@ input {
 
 .list-container {
   position: relative;
+  width: 100%;
   flex-grow: 1;
+  overflow: scroll;
+  white-space: nowrap;
+  /* border: 1px grey solid; */
+  /* overflow-y: scroll; */
   /* border: 1px red solid; */
 }
 
 .list {
-  width: 100%;
   /* height: 100%; */
   padding: 0;
   margin: 0;
   min-height: 0; 
   max-height: 100%;
-  overflow-y: scroll;
   background-color: white;
 }
 
@@ -31,20 +31,15 @@ input {
   position: absolute;
   top: 0;
   left: 0;
-  /* height: 100%; */
-  min-height: 0; 
-  max-height: 100%;
   background-color: gainsboro;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   border: 1px grey solid;
-  /* padding-bottom: 1rem; */
 }
 
 .list > li {
   list-style-type: none;
   line-height: 1.5rem;
-  /* border-top: 1px grey solid; */
   background-color: whitesmoke;
 }
 

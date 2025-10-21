@@ -1,5 +1,7 @@
+import { consumerPollProducersForChange } from "@angular/core/primitives/signals";
 import { MethodsArray, MethodDescriptorsArray, CallsObject, RowToPrint } from "../types";
 import { Method } from "./method.class";
+import { Utility } from "./utilities.class";
 
 export class Practice {
 
@@ -7,23 +9,23 @@ export class Practice {
   private _methods: MethodsArray;
   private _currentMethod: Method|undefined;
   private _nextMethod: Method|undefined;
-  private _currentRow: Array<number> = [];
-  private _nextRow: Array<number> = [];
+  private _currentRow: Array<string> = [];
+  private _nextRow: Array<string> = [];
 
   private _numberOfBells: number;
-  private _workingBell: number;
+  private _workingBell: string;
   private _calls: CallsObject;
   private _touchCall: 'plain'|'bob'|'single' = 'plain';
 
   
-  constructor(methods: MethodDescriptorsArray, calls: CallsObject, workingBell: number) {
+  constructor(methods: MethodDescriptorsArray, calls: CallsObject, workingBell: string) {
     if (methods.length === 0) throw Error("Error from Practice class: No items in methods array");
     this._methods = methods.map(m=>new Method(m));
     this._calls = calls;
     this._workingBell = workingBell;
     this._numberOfBells = this._methods[0].numberOfBells;
     this._rowNumber = -1;     // row number in lead (resets to 0 at each lead end)
-    this._nextRow = this._getFirstRow;  //this will become _currentRow when step() is called  
+    this._nextRow = this._getFirstRow;  //this will become _currentRow when step() is called 
   }
 
   // Public getters and setters 
@@ -36,7 +38,8 @@ export class Practice {
     if (!this._currentMethod) return false;
     return this._rowNumber === this._currentMethod.leadLength - 1; 
   }
-  public get isCallRow()  { return this._rowNumber === this._currentMethod!.callPosition; }
+  public get isCallRow()  {  
+    return this._rowNumber === this._currentMethod!.callPosition || this._rowNumber === this._currentMethod!.callPosition + 1; }
   public get isMethodChangeRow()  { return this._rowNumber === this._currentMethod!.callPosition + 1; }
   public get workingBellNextMove() { 
     const a = this._currentRow.findIndex(e=>e===this._workingBell);
@@ -61,8 +64,9 @@ export class Practice {
         this._currentMethod = this._nextMethod;
       }
       this._nextMethod = this._getNextMethod;
+      this._touchCall = this._getTouchCall;
     } 
-    if (this.isCallRow) callString = this._getTouchCall;
+    if (this.isCallRow) callString = this._touchCall;
     if (this.isMethodChangeRow) {
       if (this._nextMethod!.name !== this._currentMethod?.name) {
         callString = this._nextMethod!.name.split(' ')[0];
@@ -72,6 +76,7 @@ export class Practice {
     this._currentRow = this._nextRow;
     this._nextRow = this._getNextRow;
 
+    console.log({sequence: this._currentRow, isLeadEnd: this.isLeadEnd, call: callString})
     return {sequence: this._currentRow, isLeadEnd: this.isLeadEnd, call: callString}
 
   }
@@ -85,10 +90,10 @@ export class Practice {
   }
 
   /*
-  * Returns row of rounds for the present stage, eg [1,2,3,4,5,6,7,8] for Major
+  * Returns row of rounds for the present stage, eg [1,2,3,4,5,6,7,8,9,0,E,T] for Major
   */
-  private get _getFirstRow() {
-    return Array.from({length: this._numberOfBells}, (v,i) => i+1);
+  private get _getFirstRow(): Array<string> {
+    return Utility.getRoundsArray(this._numberOfBells);
   }
 
   /*
@@ -96,7 +101,7 @@ export class Practice {
   */
   private get _getNextRow() {
     let modifier = 0;
-    const transformedRow: Array<number> = [];
+    const transformedRow: Array<string> = [];
     const placeBells = this._getPlaceBellArray(this._touchCall);
     this._currentRow.forEach( (bellNumber, place) => {
       if (placeBells.includes(place+1)) modifier = 0;
@@ -110,9 +115,10 @@ export class Practice {
   *  Randomly generate plain, bob or single
   */
   private get _getTouchCall() {
-    const rand = this._randomInteger(0,100);
+    const rand = Utility.randomInteger(0,100);
+    console.log(rand, this._calls)
     if (rand < this._calls.plain) return 'plain';
-    else if (rand < this._calls.plain + this._calls.bobs) return 'bob';
+    if (rand < this._calls.plain + this._calls.bobs) return 'bob';
     return 'single';
   }
 
@@ -120,13 +126,11 @@ export class Practice {
   *  Randomly change the method, only returning string if the new method is different
   */
   private get _getNextMethod(): Method {
-    return this._methods[this._randomInteger(0,this._methods.length-1)];
+    return this._methods[Utility.randomInteger(0,this._methods.length-1)];
   }
 
  
 
-  private _randomInteger(min:number, max:number) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+
 
 }

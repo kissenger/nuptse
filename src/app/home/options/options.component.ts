@@ -3,23 +3,24 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CallsObject } from '@shared/types';
 import { NavService } from '@shared/services/nav.service';
+import { Utility } from '@shared/classes/utilities.class';
 
 @Component({
-  selector: 'app-calls',
+  selector: 'app-options',
   imports: [FormsModule, CommonModule],
-  templateUrl: './calls.component.html',
-  styleUrl: './calls.component.css',
+  templateUrl: './options.component.html',
+  styleUrl: './options.component.css',
   standalone: true
 })
 
-export class CallsComponent {
+export class OptionsComponent {
   @Output() callsUpdated = new EventEmitter<CallsObject>();
-  @Output() workingBellUpdated = new EventEmitter<number>();
+  @Output() workingBell = new EventEmitter<string>();
   @Input() 
   get numberOfBells(): number { return this._numberOfBells};
   set numberOfBells(n: number) {
     this._numberOfBells = n;
-    this._selectWorkingBell();
+    this.onBellSelect();
   }
 
   private _numberOfBells = 0;
@@ -27,7 +28,9 @@ export class CallsComponent {
   public bobs: 'None'|'Some'|'Lots' = 'None';
   public singles: 'None'|'Some'|'Lots' = 'None';
   public selectedWorkingBell: string = 'Random';
-  public get workingBellSelectionArray() {return ['Random',...[...Array(this.numberOfBells)].map((n,i)=>`${i+1}`)]};
+  public get workingBellOptions() {
+    return ['Random',...Utility.getRoundsArray(this._numberOfBells)]
+  };
 
   constructor(
     public nav: NavService
@@ -44,18 +47,12 @@ export class CallsComponent {
   }  
 
   public onBellSelect() {
-    this._selectWorkingBell();
-  }
-
-  private _selectWorkingBell() {
-    let wb: number;
-    if (this.selectedWorkingBell === 'Random') wb = this._randomInteger(2,this.numberOfBells);
-    else wb = parseInt(this.selectedWorkingBell);
-    this.workingBellUpdated.emit(wb);
-  }
-
-  private _randomInteger(min:number, max:number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    if (this.selectedWorkingBell === 'Random') {
+      const wb = Utility.randomInteger(2,this.numberOfBells);
+      this.workingBell.emit(Utility.numbToChar(wb));
+    } else {
+      this.workingBell.emit(this.selectedWorkingBell);
+    }
   }
 
   get calls(): CallsObject {

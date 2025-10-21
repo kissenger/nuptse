@@ -2,7 +2,7 @@
 .root-container {
   width: 100vw;
   height: 100dvh;
-  overflow-x: auto; 
+  overflow-x: hidden; 
 }
 
 /* These styles then remove the scroll bar */
@@ -57,7 +57,8 @@
 .nav-btns {
   border-radius: 5px;
   width: 45%;
-  margin: auto;
+  margin-inline: auto;
+  margin-top: 1rem;
   background-color: darkorange;
 }
 
