@@ -9,11 +9,13 @@ export class Method {
   private _calls: {[key: string]: placebellArray} = {}; 
   private _isEven: boolean;
   private _placeNotation: string;
+  private _stage: string;
 
   constructor(method: MethodDescriptor) {
     this._name = method.name;
     this._placeNotation = method.notation;
-    this._numberOfBells = this._nBells(method.stage);
+    this._stage = method.name.split(' ').at(-1)?.toLowerCase() ?? '';
+    this._numberOfBells = this._nBells(this._stage);
     this._isEven = this._numberOfBells % 2 === 0;
     this._plainCourse = this._getPlainCourse(method.notation);
     this._calls = this._getCalls(this._plainCourse);
@@ -155,14 +157,14 @@ export class Method {
 
   private _nBells(stage:string): number {
     switch (stage) {
-      case 'Maximus': return 12;
-      case 'Cinques': return 11;
-      case 'Royal':   return 10;
-      case 'Caters':  return 9;
-      case 'Major':   return 8;
-      case 'Triples': return 7;
-      case 'Minor':   return 6;
-      case 'Doubles': return 5;
+      case 'maximus': return 12;
+      case 'cinques': return 11;
+      case 'royal':   return 10;
+      case 'caters':  return 9;
+      case 'major':   return 8;
+      case 'triples': return 7;
+      case 'minor':   return 6;
+      case 'doubles': return 5;
       default: return 0;
     }
   }

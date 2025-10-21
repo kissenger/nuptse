@@ -12,7 +12,7 @@ export type placebellObject = {
 
 export interface MethodDescriptor {
   name: string,
-  stage: string,
+  // stage: string,
   notation: string,
   calls?: {
     [key: string]: string;

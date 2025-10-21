@@ -4,6 +4,7 @@ import { METHODS_DB } from "@shared/methods.lib";
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NavService } from '@shared/services/nav.service';
+import { Utility } from '@shared/services/utility.service';
 
 @Component({
   selector: 'app-methods',
@@ -22,12 +23,14 @@ export class MethodsComponent {
   public searchString: string = '';
 
   constructor(
-    public nav: NavService
+    public nav: NavService,
+    private _utility: Utility
   ) {}
 
-  public get methods() {
-    if (!this.selectedMethods[0]) return METHODS_DB;
-    return METHODS_DB.filter(( m:MethodDescriptor) => m.stage===this.selectedMethods[0]?.stage);
+  public get methods(): MethodDescriptorsArray {
+    let stage = this._utility.stageFromMethodName(this.selectedMethods[0]?.name);
+    if (!!stage) return METHODS_DB.filter( (m: MethodDescriptor) => m.name.toLowerCase().indexOf(stage)>0);
+    return METHODS_DB;
   }
 
   public applyFilter() {

@@ -7,6 +7,7 @@ import { PracticeComponent } from "./practice/practice.component";
 import { CallsComponent } from "./calls/calls.component";
 import { CallsObject, MethodDescriptorsArray } from '@shared/types';
 import { NavService } from '@shared/services/nav.service';
+import { Utility } from '@shared/services/utility.service';
 
 @Component({
   selector: 'app-home',
@@ -33,7 +34,8 @@ export class HomeComponent {
   constructor(
     public nav: NavService,
     private _scrollSpy: ScrollspyService,
-    private _ref: ChangeDetectorRef
+    private _ref: ChangeDetectorRef,
+    private _utility: Utility
   ) {}
     
   ngAfterViewInit(): void {
@@ -51,7 +53,8 @@ export class HomeComponent {
 
   onMethodsChange(ms: MethodDescriptorsArray) {
     this.selectedMethods = ms;
-    this.numberOfBells = this.nBells(ms[0].stage);
+    const stage = this._utility.stageFromMethodName(ms[0].name)
+    this.numberOfBells = this._utility.nBells(stage);
   }
 
   onCallsChange(c: CallsObject) {
@@ -62,19 +65,6 @@ export class HomeComponent {
     this.workingBell = wb;
   }
 
-  nBells(stage:string): number {
-    switch (stage) {
-      case 'Maximus': return 12;
-      case 'Cinques': return 11;
-      case 'Royal':   return 10;
-      case 'Caters':  return 9;
-      case 'Major':   return 8;
-      case 'Triples': return 7;
-      case 'Minor':   return 6;
-      case 'Doubles': return 5;
-      default: return 0;
-    }
-  }
 }
 
 

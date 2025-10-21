@@ -10,7 +10,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "src/shared/methods.lib.ts_old"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]
