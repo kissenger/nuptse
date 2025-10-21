@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output} from '@angular/core';
 import { MethodDescriptor, MethodDescriptorsArray, MethodsArray } from '@shared/types';
-import { METHODS_DB } from "@shared/methods_old.lib";
+import { METHODS_DB } from "@shared/methods.lib";
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NavService } from '@shared/services/nav.service';
