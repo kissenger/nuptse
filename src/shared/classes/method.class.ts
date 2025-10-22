@@ -9,11 +9,11 @@ export class Method {
   private _placebellObject: placebellObject;
   private _calls: {[key: string]: placebellArray} = {}; 
   private _isEven: boolean;
-  private _placeNotation: string;
+  // private _placeNotation: string;
 
   constructor(method: MethodDescriptor) {
     this._name = method.name;
-    this._placeNotation = method.notation;
+    // this._placeNotation = method.notation;
     this._numberOfBells = Utility.nBells(method.name);
     this._isEven = this._numberOfBells % 2 === 0;
     this._plainCourse = this._getPlainCourse(method.notation);
@@ -59,10 +59,6 @@ export class Method {
       } else {
         // notation must be numerical as relies on array element numbers
         placeBells.push(Utility.charToNumb(char));
-        if (char === '0') placeBells.push(10);
-        else if (char === 'E') placeBells.push(11);
-        else if (char === 'T') placeBells.push(12);
-        else placeBells.push(parseInt(char));
       }
     } 
     array.push(placeBells);
@@ -98,14 +94,6 @@ export class Method {
 
 
   /*
-  * Infer the number of hunt bells:
-  *   If the method is odd and 3pb is making a place at the leadend, its likely to have two hunt bells
-  */
-  private get _isMultipleHuntBells() {
-    return !this._isEven && this._placeNotation.slice(-1) === '3';
-  }
-
-  /*
   *
   */
   private _getCalls(plainCourse: placebellArray) {
@@ -113,18 +101,22 @@ export class Method {
     let bob: placebellArray = [];
     let single: placebellArray = [];
     let pc: placebellArray = [...plainCourse];
+    // console.log(pc)
+    console.log(plainCourse)
 
     /*
     *  Find the last change that does not have a single placebell in 1pb
     */
-    const index = pc.reverse().findIndex( r => r.length > 1 || r[0] !== 1 );
+    const index = pc.findLastIndex( r => r.length > 1 || r[0] !== 1 );
     const affectedChanges = pc.slice(index);
     const n = this._numberOfBells;
+
+    console.log(index,affectedChanges,n);
 
     /*
     *  The rules for a BOB:
     *  For an even method - move pb 2 right is pb = 2, 2 left if pb is behind
-    *  For an odd method - pb of interest is not a 1,2,3 or last bell, move anything else to a 3.
+    *  For an odd method - pb of interest is not a 1,2,3 move anything else to a 3.
     *  The rules for a SINGLE:
     *  For an even method - move pb 2 right is pb = 2, 2 left if pb is behind
     *  For an odd method - pb of interest is not a 1,2,3 or last bell, move anything else to a 3.
@@ -138,10 +130,10 @@ export class Method {
         bob = [[1, n-2]];
         single = [[1, n-2, n-1, n]];
       }
-    } else {
+    } else { //odd
       if (affectedChanges.length === 2) {
-        if (affectedChanges[0].every(e=>![1,2,3,n].includes(e))) {
-          bob = [[3],[]];
+        if (affectedChanges[0].every(e=>![1,2,3].includes(e))) {
+          bob = [[3],[1]];
           single = [[3],[1, 2, 3]];
         }
       } else if (affectedChanges.length == 1) {
