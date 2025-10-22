@@ -1,13 +1,13 @@
 import { Component, ElementRef, HostListener, Input, OnChanges, ViewChild} from '@angular/core';
 import { BellPositionHistory, CallsObject, MethodDescriptorsArray,RowsToPrintArray, RowToPrint } from '@shared/types';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule, DecimalPipe, PercentPipe } from '@angular/common';
 import { Practice } from '@shared/classes/practice.class';
 import { NavService } from '@shared/services/nav.service';
 
 @Component({
   selector: 'app-practice',
-  imports: [FormsModule, CommonModule, DecimalPipe],
+  imports: [FormsModule, CommonModule, PercentPipe],
   templateUrl: './practice.component.html',
   styleUrl: './practice.component.css',
   standalone: true
@@ -39,11 +39,14 @@ export class PracticeComponent implements OnChanges{
   private _rows: Array<SVGElement> = [];
   private _numbers: {[key: string]: Array<number>} = {};
   private _paths: {[key: string]: SVGElement} = {}
+  private _isFirstKeypress = true;
   
   public currentRow?: RowToPrint;
   public practice!: Practice;
   public errorCount: number = 0;
+  public successCount: number = 0;
   public keyPresses: number = 0;
+  
   public call: string = '';
 
   constructor(
@@ -189,14 +192,19 @@ export class PracticeComponent implements OnChanges{
 
   processKeyEvent(receivedKeypress: string) {
     let expectedKeypress = ['ArrowLeft','ArrowDown','ArrowRight'][this.practice.workingBellNextMove+1];
-    this.keyPresses++;
     if (receivedKeypress === expectedKeypress) {
       this.currentRow = this.practice.step()
       this.call = this.currentRow.call === 'plain' ? '' : this.currentRow.call;
-      console.log(this.currentRow)
       this.printRow();   
+      if (this._isFirstKeypress === true) {
+        this.successCount++;
+      };
+      this._isFirstKeypress = true;
     } else {
-      this.errorCount++;
+      if (this._isFirstKeypress === true) {
+        this.errorCount++;
+        this._isFirstKeypress = false;
+      }
     }
   }
 

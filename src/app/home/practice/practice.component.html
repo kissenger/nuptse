@@ -5,9 +5,9 @@
     <div class="practice-container">
 
       <div class="generic-flex-grow-container">
-        Rows: {{keyPresses}}<br>
+        Correct: {{successCount}}<br>
         Errors: {{errorCount}}<br>
-        Average: {{errorCount/keyPresses*100 | number: '1.1-1'}}%<br>
+        Average: {{successCount/(successCount+errorCount) | percent: '1.1-1'}}<br>
         <br>
         
         <svg #svg height="200" width="200"></svg>
