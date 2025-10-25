@@ -74,7 +74,7 @@ export class PracticeComponent implements OnChanges{
     const div: HTMLDivElement = this._renderer.createElement('div');
     this._renderer.addClass(div,'callbox-call')
     this._renderer.appendChild(this._callbox.nativeElement, div);
-    div.innerHTML = message;
+    div.innerHTML = `<q>${message}</q>`;
     this._callHandler.push({element: div, age: 1});
     return div;
   }
@@ -214,7 +214,10 @@ export class PracticeComponent implements OnChanges{
 
   applyStep() {
     this.currentRow = this.practice.step()
-    if (this.currentRow.call) this.createCall(this.currentRow.call);
+    if (this.currentRow.call) {
+      const call = this.currentRow.call;
+      this.createCall(call[0].toUpperCase() + call.slice(1));
+    };
     this.checkCalls();
     this.printRow();
   }
