@@ -1,13 +1,16 @@
 import { Method } from "./classes/method.class";
 
 export type RowsToPrintArray = Array<RowToPrint>;
-export type RowToPrint = {sequence: Array<string>, isLeadEnd: boolean, call: string};
+export type RowToPrint = {sequence: Array<string>, isLeadEnd: boolean, call: string | null};
+export type Row = Array<string>;
 
-export type placebellArray = Array<Array<number>>
-export type placebellObject = {
-  'plain':  placebellArray,
-  'bob':    placebellArray,
-  'single': placebellArray
+export type PlacebellArray = Array<Array<number>>
+
+export type PlacebellObject = {
+  plain:  PlacebellArray,
+  bob:    PlacebellArray,
+  single: PlacebellArray,
+  callPosition: number
 }
 
 export interface MethodDescriptor {

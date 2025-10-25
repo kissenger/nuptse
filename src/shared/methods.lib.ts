@@ -30,7 +30,7 @@ export const METHODS_DB = [
 	{name: 'Lincolnshire Surprise Maximus', notation: 'x3Tx14x5Tx16x7Tx18x9Tx10x18x9Tx70xET,12'},
 	{name: 'Little Bob Minor',            notation: 'x16x14,12'},
 	{name: 'Little Bob Major',            notation: 'x16x14,12'},
-	{name: 'London Surprise Minor',       notation: '36x36.14x12x36.14x14.36,12,12'},	
+	{name: 'London Surprise Minor',       notation: '36x36.14x12x36.14x14.36,12'},	
 	{name: 'London Surprise Major',       notation: '38x38.14x12x38.14x14.58.16x16.58,12'},	
 	{name: 'Middlesex Bob Triples',       notation: 'x34x14x12x36x34x16,16'},
 	{name: 'Norwich Surprise Minor',      notation: '5.1.7.1.7.1.7,125'},

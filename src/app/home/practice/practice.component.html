@@ -5,17 +5,15 @@
     <div class="practice-container">
 
       <div class="generic-flex-grow-container">
-        Correct: {{successCount}}<br>
-        Errors: {{errorCount}}<br>
-        Average: {{successCount/(successCount+errorCount) | percent: '1.1-1'}}<br>
-        <br>
-        
-        <svg #svg height="200" width="200"></svg>
-
-        <div class="callbox">
-          {{call}}
+        <div class="stats">
+          Correct: {{successCount}}<br>
+          Errors: {{errorCount}}<br>
+          Success Rate: {{successCount/(successCount+errorCount) | percent: '1.1-1'}}
         </div>
-        
+        <div class="svg-container">
+          <svg #svg height="200" width="200"></svg>
+          <div #callbox class="callbox"></div>
+        </div>
       </div>
 
       <div class="arrow-btns">

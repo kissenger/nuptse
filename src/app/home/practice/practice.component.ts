@@ -1,9 +1,10 @@
-import { Component, ElementRef, HostListener, Input, OnChanges, ViewChild} from '@angular/core';
-import { BellPositionHistory, CallsObject, MethodDescriptorsArray,RowsToPrintArray, RowToPrint } from '@shared/types';
+import { Component, ElementRef, HostListener, Input, OnChanges, Renderer2, ViewChild} from '@angular/core';
+import { CallsObject, MethodDescriptorsArray, RowToPrint } from '@shared/types';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, DecimalPipe, PercentPipe } from '@angular/common';
+import { CommonModule, PercentPipe } from '@angular/common';
 import { Practice } from '@shared/classes/practice.class';
 import { NavService } from '@shared/services/nav.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-practice',
@@ -16,6 +17,7 @@ import { NavService } from '@shared/services/nav.service';
 export class PracticeComponent implements OnChanges{
 
   @ViewChild('svg') _svgElement!: ElementRef<SVGElement>;
+  @ViewChild('callbox') _callbox!: ElementRef<HTMLElement>;
   
   @Input() methods: MethodDescriptorsArray = [];
   @Input() calls: CallsObject = {plain: 100, bobs: 0, singles: 0};
@@ -33,47 +35,68 @@ export class PracticeComponent implements OnChanges{
   private _LINE_HEIGHT = 30;
   private _LINE_HEIGHT_ADJUST = -10;
   private _CHAR_WIDTH_ADJUST = 10;
-  
   private _LEposition: number = 0;
   private _svgNamespace = "http://www.w3.org/2000/svg";
   private _rows: Array<SVGElement> = [];
   private _numbers: {[key: string]: Array<number>} = {};
   private _paths: {[key: string]: SVGElement} = {}
   private _isFirstKeypress = true;
+  private _callHandler: Array<{element: HTMLDivElement, age: number}> = [];
   
   public currentRow?: RowToPrint;
   public practice!: Practice;
   public errorCount: number = 0;
   public successCount: number = 0;
-  public keyPresses: number = 0;
-  
-  public call: string = '';
 
   constructor(
+    private _renderer: Renderer2,
+    private _sanitiser: DomSanitizer,
     public nav: NavService
-  ) {
-
-  }
+  ) { }
 
   ngOnChanges() {
     this.practice = new Practice(this.methods, this.calls, this.workingBell);
-    this.currentRow = this.practice.step();
-    this.call = this.currentRow.call;
   }
 
-  ngAfterViewInit() {
-    this.initSvg();
-    console.log(this.currentRow)
-    this.printRow();
+  ngAfterViewInit () {
+    this.svgInit();
+    this.applyStep();
   }
 
-  initSvg() {
-    // this.resizeSvg(this.practice.numberOfBells * this._CHAR_WIDTH, this._LINE_HEIGHT *2);
+  svgInit() {
+    const w = this.practice.numberOfBells * this._CHAR_WIDTH;
+    const h = this._LINE_HEIGHT * this._N_ROWS_TO_PRINT + 10;
+    this.resizeSvg(w, h);
     this.createPaths();
   }
 
+  createCall(message: string): HTMLElement {
+    const div: HTMLDivElement = this._renderer.createElement('div');
+    this._renderer.addClass(div,'callbox-call')
+    this._renderer.appendChild(this._callbox.nativeElement, div);
+    div.innerHTML = message;
+    this._callHandler.push({element: div, age: 1});
+    return div;
+  }
+
+  // manages the visibility and removal of call boxes
+  // boxes are first hidden, then removed - this allows animation of the removal
+  checkCalls() {
+    this._callHandler.forEach(call=> {
+      if (call.age > 3) {
+        const element = this._callHandler.shift(); // relies on oldest elements being first in array
+        this._renderer.removeChild(this._callbox.nativeElement, element?.element);
+      } else if (call.age === 3) {
+        this._renderer.addClass(call.element,'hidden')
+        call.age++;
+      } else {
+        call.age++;
+      }
+    });
+  }
+
   printRow() {
-    
+
     let x = 0;
     const y = (this._rows.length + 1) * this._LINE_HEIGHT;
     const rowSvg = document.createElementNS(this._svgNamespace, 'svg');
@@ -173,7 +196,6 @@ export class PracticeComponent implements OnChanges{
         }
       }
     }
-    this.resizeSvg(this.practice.numberOfBells * this._CHAR_WIDTH, this._LINE_HEIGHT * this._rows.length+10);
   }
 
   // path is recreated from scratch due to rows disappearing  
@@ -190,18 +212,23 @@ export class PracticeComponent implements OnChanges{
 
   }
 
+  applyStep() {
+    this.currentRow = this.practice.step()
+    if (this.currentRow.call) this.createCall(this.currentRow.call);
+    this.checkCalls();
+    this.printRow();
+  }
+
   processKeyEvent(receivedKeypress: string) {
-    let expectedKeypress = ['ArrowLeft','ArrowDown','ArrowRight'][this.practice.workingBellNextMove+1];
+    let expectedKeypress = ['ArrowLeft','ArrowDown','ArrowRight'][this.practice.wbMovement+1];
     if (receivedKeypress === expectedKeypress) {
-      this.currentRow = this.practice.step()
-      this.call = this.currentRow.call === 'plain' ? '' : this.currentRow.call;
-      this.printRow();   
-      if (this._isFirstKeypress === true) {
+      this.applyStep();
+      if (this._isFirstKeypress) {
         this.successCount++;
       };
       this._isFirstKeypress = true;
     } else {
-      if (this._isFirstKeypress === true) {
+      if (this._isFirstKeypress) {
         this.errorCount++;
         this._isFirstKeypress = false;
       }

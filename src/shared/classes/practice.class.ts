@@ -1,4 +1,3 @@
-import { consumerPollProducersForChange } from "@angular/core/primitives/signals";
 import { MethodsArray, MethodDescriptorsArray, CallsObject, RowToPrint } from "../types";
 import { Method } from "./method.class";
 import { Utility } from "./utilities.class";
@@ -7,130 +6,98 @@ export class Practice {
 
   private _rowNumber: number; //row number within lead end
   private _methods: MethodsArray;
-  private _currentMethod: Method|undefined;
-  private _nextMethod: Method|undefined;
+  private _currentMethod: Method;
+  private _nextMethod: Method;
   private _currentRow: Array<string> = [];
   private _nextRow: Array<string> = [];
-
+  private _call: 'plain'|'bob'|'single';
   private _numberOfBells: number;
   private _workingBell: string;
-  private _calls: CallsObject;
-  private _touchCall: 'plain'|'bob'|'single' = 'plain';
-
+  private _callProbabilities: CallsObject;
+  private _isFirstFlag = true;
   
   constructor(methods: MethodDescriptorsArray, calls: CallsObject, workingBell: string) {
     if (methods.length === 0) throw Error("Error from Practice class: No items in methods array");
     this._methods = methods.map(m=>new Method(m));
-    this._calls = calls;
+    this._currentMethod = this._methods[0];
+    this._nextMethod = this._getNextMethod;
+    this._callProbabilities = calls;
+    this._call = this._getCall;
     this._workingBell = workingBell;
-    this._numberOfBells = this._methods[0].numberOfBells;
     this._rowNumber = -1;     // row number in lead (resets to 0 at each lead end)
-    this._nextRow = this._getFirstRow;  //this will become _currentRow when step() is called 
+    this._numberOfBells = this._methods[0].numberOfBells;
+    this._nextRow = Utility.getRoundsArray(this._numberOfBells);  //this will become _currentRow when step() is called 
   }
 
   // Public getters and setters 
-  public get isLeadHead() { return this._rowNumber <= 0; }
-  // public get isLeadEnd()  { 
-  //   if (!this._currentMethod) return false;
-  //   return this._rowNumber === this._currentMethod.leadLength - 1; 
-  // }
-  public get isLeadEnd()  { 
-    if (!this._currentMethod) return false;
-    return this._rowNumber === this._currentMethod.leadLength - 1; 
-  }
-  public get isCallRow()  {  
-    return this._rowNumber === this._currentMethod!.callPosition || this._rowNumber === this._currentMethod!.callPosition + 1; }
-  public get isMethodChangeRow()  { return this._rowNumber === this._currentMethod!.callPosition + 1; }
-  public get workingBellNextMove() { 
-    const a = this._currentRow.findIndex(e=>e===this._workingBell);
-    const b = this._nextRow.findIndex(e=>e===this._workingBell); 
-    return b-a;
-  } 
-  public get numberOfBells () { return this._numberOfBells; }
+  public get isLeadHead()      { return this._rowNumber <= 0; }
+  public get isLeadEnd()       { return this._rowNumber === this._currentMethod!.leadLength - 1; }
+  public get isMethodCallRow() { return this._rowNumber === this._currentMethod!.leadLength! - 2; }
+  public get isCallRow()       { return this._rowNumber === this._currentMethod!.leadLength! - 3; }
+  public get numberOfBells ()  { return this._numberOfBells!; }
+  public get wbMovement()      { return this._nextRow.indexOf(this._workingBell) - this._currentRow.indexOf(this._workingBell); } 
+ 
 
   // Step through leadend (increment row number and get next change)
   public step(): RowToPrint {
 
-    let callString: string = '';
-
+    let currentCall: string | null = null;
     this._rowNumber = this.isLeadEnd ? 0 : this._rowNumber + 1;
 
-
     if (this.isLeadHead) {
-      if (!this._currentMethod) {
-        this._currentMethod = this._methods[0]; 
-        callString = 'Go ' + this._currentMethod.name;
+      if (this._isFirstFlag) {
+        currentCall = 'Go ' + this._currentMethod?.name;
+        this._isFirstFlag = false;
       } else {
         this._currentMethod = this._nextMethod;
+        this._nextMethod = this._getNextMethod;
       }
-      this._nextMethod = this._getNextMethod;
-      this._touchCall = this._getTouchCall;
+      this._call = this._getCall;
     } 
-    if (this.isCallRow) callString = this._touchCall;
-    if (this.isMethodChangeRow) {
-      if (this._nextMethod!.name !== this._currentMethod?.name) {
-        callString = this._nextMethod!.name.split(' ')[0];
-      }   
+
+    if (this.isCallRow) {
+      currentCall = this._call === 'plain' ? '' : this._call;
+    }
+
+    if (this.isMethodCallRow) {
+      if (this._currentMethod.name !== this._nextMethod.name) {
+        currentCall = this._nextMethod.name.split(' ')[0];
+      }
     }
 
     this._currentRow = this._nextRow;
-    this._nextRow = this._getNextRow;
+    const placeBells = this._currentMethod.getPlaceBells(this._rowNumber, this._call);
+    this._nextRow = this._currentMethod.transformRow(this._currentRow, placeBells!);
 
-    console.log({sequence: this._currentRow, isLeadEnd: this.isLeadEnd, call: callString})
-    return {sequence: this._currentRow, isLeadEnd: this.isLeadEnd, call: callString}
+    return {sequence: this._currentRow, isLeadEnd: this.isLeadEnd, call: currentCall}
 
-  }
-
-  /*
-  *   Get the place bell array for the next row, from the active method instance  
-  */
-  private _getPlaceBellArray(call: 'plain'|'bob'|'single') {
-    // const nextRowNumber = this._rowNumber + 1 === this._currentMethod?.leadLength ? 0 : this._rowNumber + 1;
-    return this._currentMethod!.placebells(this._rowNumber, call);
-  }
-
-  /*
-  * Returns row of rounds for the present stage, eg [1,2,3,4,5,6,7,8,9,0,E,T] for Major
-  */
-  private get _getFirstRow(): Array<string> {
-    return Utility.getRoundsArray(this._numberOfBells);
-  }
-
-  /*
-  Transform a given row eg [1,2,3,4] by given place array eg [2,3] results in [1,3,2,4]
-  */
-  private get _getNextRow() {
-    let modifier = 0;
-    const transformedRow: Array<string> = [];
-    const placeBells = this._getPlaceBellArray(this._touchCall);
-    this._currentRow.forEach( (bellNumber, place) => {
-      if (placeBells.includes(place+1)) modifier = 0;
-      else modifier = modifier <= 0 ? 1 : -1;
-      transformedRow.push(this._currentRow[place+modifier])
-    })
-    return transformedRow;
   }
 
   /*
   *  Randomly generate plain, bob or single
   */
-  private get _getTouchCall() {
+  private get _getCall() {
+    // console.log(this._currentMethod)
     const rand = Utility.randomInteger(0,100);
-    console.log(rand, this._calls)
-    if (rand < this._calls.plain) return 'plain';
-    if (rand < this._calls.plain + this._calls.bobs) return 'bob';
+    if (rand < this._callProbabilities.plain) return 'plain';
+    if (rand < this._callProbabilities.plain + this._callProbabilities.bobs) return 'bob';
     return 'single';
   }
 
   /*
-  *  Randomly change the method, only returning string if the new method is different
+  *  Randomly change the method in two steps
+  *  1) role the dice to determine whether the method should change
+  *  2) role the dice to determine which method to change to 
+  *  This ensures that you dont necessarily change methods every lead, and get a few leads 
   */
   private get _getNextMethod(): Method {
-    return this._methods[Utility.randomInteger(0,this._methods.length-1)];
+    if (this._methods.length > 1) {
+        if (Utility.randomInteger(1,10) > 6) {
+          const arr = this._methods!.filter(m => m.name !== this._currentMethod!.name);
+          return arr[Utility.randomInteger(0, arr.length-1)];
+        }
+    }
+    return this._currentMethod;
   }
-
- 
-
-
 
 }
