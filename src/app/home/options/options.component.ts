@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { CallsObject } from '@shared/types';
+import { PracticeOptions } from '@shared/types';
 import { NavService } from '@shared/services/nav.service';
 import { Utility } from '@shared/classes/utilities.class';
 
@@ -14,20 +14,22 @@ import { Utility } from '@shared/classes/utilities.class';
 })
 
 export class OptionsComponent {
-  @Output() callsUpdated = new EventEmitter<CallsObject>();
-  @Output() workingBell = new EventEmitter<string>();
+
+  @Output() options = new EventEmitter<PracticeOptions>();
+
   @Input() 
-  get numberOfBells(): number { return this._numberOfBells};
-  set numberOfBells(n: number) {
-    this._numberOfBells = n;
-    this.onBellSelect();
-  }
+  get numberOfBells(): number|undefined { 
+    return this._numberOfBells
+  };
+  set numberOfBells(n: number|undefined) {
+    if (n) this._numberOfBells = n;
+    this.onUpdatedOptions();
+  };
 
   private _numberOfBells = 0;
-  public callOptions = ['None', 'Some', 'Lots'];
-  public bobs: 'None'|'Some'|'Lots' = 'None';
-  public singles: 'None'|'Some'|'Lots' = 'None';
-  public selectedWorkingBell: string = 'Random';
+  public bobs: boolean = false;
+  public singles: boolean = false;
+  public workingBell: string = 'Random';
   public get workingBellOptions() {
     return ['Random',...Utility.getRoundsArray(this._numberOfBells)]
   };
@@ -36,46 +38,12 @@ export class OptionsComponent {
     public nav: NavService
   ) {}
   
-  public onBobSelect() {
-    if (this.singles === 'Lots' && this.bobs === 'Lots') this.singles = 'Some';
-    this.callsUpdated.emit(this.calls);
-  }
-
-  public onSingleSelect() {
-    if (this.singles === 'Lots' && this.bobs === 'Lots') this.bobs = 'Some';
-    this.callsUpdated.emit(this.calls);
-  }  
-
-  public onBellSelect() {
-    if (this.selectedWorkingBell === 'Random') {
-      const wb = Utility.randomInteger(2,this.numberOfBells);
-      this.workingBell.emit(Utility.numbToChar(wb));
-    } else {
-      this.workingBell.emit(this.selectedWorkingBell);
-    }
-  }
-
-  get calls(): CallsObject {
-
-    let bobs = 0;
-    let singles = 0;
-
-    if (this.bobs === 'None') {
-      if (this.singles === 'None') { bobs = 0; singles = 0  };
-      if (this.singles === 'Some') { bobs = 0; singles = 33 };
-      if (this.singles === 'Lots') { bobs = 0; singles = 75 };
-    } else if (this.bobs === 'Some') {
-      if (this.singles === 'None') { bobs = 33; singles = 0  };
-      if (this.singles === 'Some') { bobs = 33; singles = 33 };
-      if (this.singles === 'Lots') { bobs = 25; singles = 50 };
-    }  else if (this.bobs === 'Lots') {
-      if (this.singles === 'None') { bobs = 75; singles = 0  };
-      if (this.singles === 'Some') { bobs = 50; singles = 25 };
-    }  
-
-    const plain = 100 - bobs - singles;
-    return {plain , bobs, singles}
-
+  public onUpdatedOptions() {
+    this.options.emit({
+      workingBell: this.workingBell,
+      bobs: this.bobs, 
+      singles: this.singles
+    });
   }
 
 }

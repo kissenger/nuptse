@@ -5,7 +5,7 @@
         <label for="selectBell">Working bell:</label>
       </div>
       <div class="grid-cell grid-margin">
-        <select #selectWorkingBell [(ngModel)]="selectedWorkingBell" (click)="onBellSelect()" name="selectBell" id="selectBell">
+        <select #selectWorkingBell [(ngModel)]="workingBell" (click)="onUpdatedOptions()" name="selectBell" id="selectBell">
           @for(wbOption of workingBellOptions; track wbOption) {
             <option value="{{wbOption}}">{{wbOption}}</option>
           }
@@ -16,22 +16,14 @@
         <label for="selectBobs">Bobs:</label>
       </div>
       <div class="grid-cell grid-margin">
-        <select #selectBobs [(ngModel)]="bobs" (change)="onBobSelect()" name="selectBobs" id="selectBobs">
-          @for(callOption of callOptions; track callOption) {
-            <option value="{{callOption}}"> {{callOption}} </option>
-          }
-        </select>
+        <input #selectBobs type="checkbox" [(ngModel)]="bobs" (change)="onUpdatedOptions()" name="selectBobs" id="selectBobs">
       </div>
 
       <div class="grid-cell">
         <label for="selectSingles">Singles:</label>
       </div>
       <div class="grid-cell">
-        <select #selectSingles [(ngModel)]="singles" (change)="onSingleSelect()" name="selectSingles" id="selectSingles">
-          @for(callOption of callOptions; track callOption) {
-            <option value="{{callOption}}"> {{callOption}} </option>
-          }
-        </select>
+        <input #selectSingles type="checkbox" [(ngModel)]="singles" (change)="onUpdatedOptions()" name="selectSingles" id="selectSingles">
       </div>
   </div>
 

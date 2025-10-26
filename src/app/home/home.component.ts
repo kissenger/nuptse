@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { MethodsComponent } from './methods/methods.component';
 import { PracticeComponent } from "./practice/practice.component";
 import { OptionsComponent } from "./options/options.component";
-import { CallsObject, MethodDescriptorsArray } from '@shared/types';
+import { MethodDescriptorsArray, PracticeOptions } from '@shared/types';
 import { NavService } from '@shared/services/nav.service';
 import { Utility } from '@shared/classes/utilities.class';
 
@@ -21,9 +21,9 @@ export class HomeComponent {
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   
-  public selectedMethods: MethodDescriptorsArray = [];
-  public selectedCalls: CallsObject = {plain: 100, bobs: 0, singles: 0};
-  public numberOfBells: number = 0;
+  public methods: MethodDescriptorsArray = [];
+  public options: PracticeOptions = new PracticeOptions;
+  public numberOfBells?: number;
   public hideBackBtn = true;
   public hideFwdBtn  = true;
   public disableFwdBtn = false;
@@ -48,19 +48,17 @@ export class HomeComponent {
     })
   }
 
-
   onMethodsChange(ms: MethodDescriptorsArray) {
-    this.selectedMethods = ms;
-    this.numberOfBells = Utility.nBells(ms[0].name);
+    this.methods = ms;
+    if (ms.length > 0) {
+      this.numberOfBells = Utility.nBells(ms[0].name);
+    }
   }
 
-  onCallsChange(c: CallsObject) {
-    this.selectedCalls = c;
+  onOptionsChange(o: PracticeOptions) {
+    this.options = o;
   }
 
-  onWorkingBellUpdate(wb: string) {
-    this.workingBell = wb;
-  }
 
 }
 

@@ -18,6 +18,10 @@ input, button, select {
   font: inherit;
 }
 
+input[type=checkbox] {
+    transform: scale(2);
+}
+
 option {
   font-size: 16px;
 

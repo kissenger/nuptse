@@ -1,10 +1,9 @@
 import { Component, ElementRef, HostListener, Input, OnChanges, Renderer2, ViewChild} from '@angular/core';
-import { CallsObject, MethodDescriptorsArray, RowToPrint } from '@shared/types';
+import { MethodDescriptorsArray, PracticeOptions, RowToPrint } from '@shared/types';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, PercentPipe } from '@angular/common';
 import { Practice } from '@shared/classes/practice.class';
 import { NavService } from '@shared/services/nav.service';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-practice',
@@ -20,8 +19,7 @@ export class PracticeComponent implements OnChanges{
   @ViewChild('callbox') _callbox!: ElementRef<HTMLElement>;
   
   @Input() methods: MethodDescriptorsArray = [];
-  @Input() calls: CallsObject = {plain: 100, bobs: 0, singles: 0};
-  @Input() workingBell: string = '';
+  @Input() options = new PracticeOptions;
   
   @HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
     if (["ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)) {
@@ -37,11 +35,12 @@ export class PracticeComponent implements OnChanges{
   private _CHAR_WIDTH_ADJUST = 10;
   private _LEposition: number = 0;
   private _svgNamespace = "http://www.w3.org/2000/svg";
-  private _rows: Array<SVGElement> = [];
+  private _rows: Array<HTMLElement> = [];
   private _numbers: {[key: string]: Array<number>} = {};
-  private _paths: {[key: string]: SVGElement} = {}
+  private _paths: {[key: string]: SVGElement} = {};
   private _isFirstKeypress = true;
   private _callHandler: Array<{element: HTMLDivElement, age: number}> = [];
+  private _workingBell: string = '';
   
   public currentRow?: RowToPrint;
   public practice!: Practice;
@@ -50,17 +49,18 @@ export class PracticeComponent implements OnChanges{
 
   constructor(
     private _renderer: Renderer2,
-    private _sanitiser: DomSanitizer,
     public nav: NavService
   ) { }
 
   ngOnChanges() {
-    this.practice = new Practice(this.methods, this.calls, this.workingBell);
+    this.practice = new Practice(this.methods, this.options);
+    this._workingBell = this.practice.workingBell;
+
   }
 
   ngAfterViewInit () {
     this.svgInit();
-    this.applyStep();
+    this.applyStep(true);
   }
 
   svgInit() {
@@ -95,37 +95,46 @@ export class PracticeComponent implements OnChanges{
     });
   }
 
-  printRow() {
+  createRow(success: boolean) {
 
     let x = 0;
     const y = (this._rows.length + 1) * this._LINE_HEIGHT;
-    const rowSvg = document.createElementNS(this._svgNamespace, 'svg');
+    const group = document.createElementNS(this._svgNamespace, 'g');
+    const svg = document.createElementNS(this._svgNamespace, 'svg');
+    const rect = this.createRect(x,y, success ? 'white' : 'red');
 
     for (let i = 0; i < this.currentRow!.sequence.length; i++) {
-
       const bell = this.currentRow!.sequence[i];
-
-      // record x position of treble and working bell
-      if (bell === '1' || bell === this.workingBell) {
-        if (!this._numbers[bell]) this._numbers[bell] = [x + this._CHAR_WIDTH_ADJUST];
-        else this._numbers[bell].push(x + this._CHAR_WIDTH_ADJUST);
+      const char = this.createCharacter(x, y, bell);
+      svg.appendChild(char);
+      if (bell === this._workingBell && this._rows.length === 0) {
+        svg.prepend(this.createCircle(x, y));
       }
-
-      // print current bell; put a circle around working bell in first row
-      rowSvg.appendChild(this.createCharacter(x, y, bell));
-      if (bell === this.workingBell && this._rows.length === 0) {
-        rowSvg.prepend(this.createCircle(x, y));
-      }
-
+      this.recordNumberPositions(bell, x);
       x += this._CHAR_WIDTH;
     }
+    
+    group.append(rect)
+    group.appendChild(svg);
+    
+    this._rows.push(<HTMLElement>this._svgElement?.nativeElement.appendChild(group));
+  }
+  
+  recordNumberPositions(b: string, x: number) {
+    if (b === '1' || b === this._workingBell) {
+      if (!this._numbers[b]) this._numbers[b] = [x + this._CHAR_WIDTH_ADJUST];
+      else this._numbers[b].push(x + this._CHAR_WIDTH_ADJUST);
+    } 
+  }
 
-    this._rows.push(<SVGElement>this._svgElement?.nativeElement.appendChild(rowSvg));
-
-    this.updateRows();
-    this.updateBellPaths();
-    this.updateLeadendLine();
-
+  createRect(x: number, y: number, colour: string) {
+    const rect = document.createElementNS(this._svgNamespace, 'rect');
+    rect.setAttribute('width', (this.practice.numberOfBells * this._CHAR_WIDTH).toString());
+    rect.setAttribute('height', this._LINE_HEIGHT.toString());
+    rect.setAttribute('y', (y-this._LINE_HEIGHT).toString());
+    rect.setAttribute('fill',colour);
+    rect.setAttribute('opacity','0.2');
+    return rect
   }
 
   createCircle(x: number, y: number) {
@@ -147,13 +156,14 @@ export class PracticeComponent implements OnChanges{
     text.setAttribute('font-family', 'Courier New')
     text.setAttribute('font-weight', 'lighter')
     text.setAttribute('fill', b === '1' ? 'red' : 'blue');
+    // text.setAttribute('background', 'red');
     text.textContent = b.toString();
     return text
   }
 
   createPaths() {
     // path 0 is the LE
-    for (const bell of [0, 1, this.workingBell]) {
+    for (const bell of [0, 1, this._workingBell]) {
       const path = <SVGElement>document.createElementNS(this._svgNamespace, 'path');
       path.setAttribute('id', `path-${bell}`);
       path.setAttribute('stroke', bell === 1 ? 'red' : 'blue');
@@ -176,31 +186,34 @@ export class PracticeComponent implements OnChanges{
       this._LEposition -= this._LINE_HEIGHT;
     }
     if (this._LEposition < 0) {
-      this._paths[0].setAttribute('d', '')
+      this._paths![0].setAttribute('d', '')
     } else {
       const y = this._LEposition;
       const xmax = this._CHAR_WIDTH * this.practice.numberOfBells;
-      this._paths[0].setAttribute('d',`M0,${y},L${xmax},${y}`)
+      this._paths![0].setAttribute('d',`M0,${y},L${xmax},${y}`)
     }
   }
 
   // manage the number of rows displayed, deleting the uppermost when limit is reached
   updateRows() {
     if (this._rows.length >= this._N_ROWS_TO_PRINT) {
-      this._svgElement.nativeElement.removeChild(<SVGElement>this._rows.shift());
+      this._svgElement.nativeElement.removeChild(<HTMLElement>this._rows.shift());
       this._numbers[1].shift();
-      this._numbers[this.workingBell].shift(); 
+      this._numbers[this._workingBell].shift(); 
       for (let i = 0; i < this._rows.length; i++) {
-        for (let el of this._rows[i].children) {
+        // update text entries
+        for (let el of this._rows[i].children[1].children) {
           el.setAttribute('y',`${(i + 1) * this._LINE_HEIGHT}`) 
         }
+        // update background rect
+        this._rows[i].children[0].setAttribute('y',`${(i + 1) * this._LINE_HEIGHT - this._LINE_HEIGHT}`);
       }
     }
   }
 
   // path is recreated from scratch due to rows disappearing  
   updateBellPaths() {
-    for (const number of [1, this.workingBell]) {
+    for (const number of [1, this._workingBell]) {
       if (this._numbers[number].length < 2) {
         this._paths[number].setAttribute('d', ''); // Clear path if not enough points
       } else {
@@ -212,20 +225,23 @@ export class PracticeComponent implements OnChanges{
 
   }
 
-  applyStep() {
+  applyStep(success: boolean) {
     this.currentRow = this.practice.step()
     if (this.currentRow.call) {
       const call = this.currentRow.call;
       this.createCall(call[0].toUpperCase() + call.slice(1));
     };
     this.checkCalls();
-    this.printRow();
+    this.createRow(success);
+    this.updateRows();
+    this.updateBellPaths();
+    this.updateLeadendLine();
   }
 
   processKeyEvent(receivedKeypress: string) {
     let expectedKeypress = ['ArrowLeft','ArrowDown','ArrowRight'][this.practice.wbMovement+1];
     if (receivedKeypress === expectedKeypress) {
-      this.applyStep();
+      this.applyStep(this._isFirstKeypress);
       if (this._isFirstKeypress) {
         this.successCount++;
       };

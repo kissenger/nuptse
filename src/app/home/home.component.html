@@ -16,7 +16,7 @@
         remember the shape of changes over a leadend.  
     </div>
     <div class="nav-btn-container"> 
-      <button class="nav-btns"  (click)="nav.scrollTo('methods')">Start</button>  
+      <button class="nav-btns" (click)="nav.scrollTo('methods')">Start</button>  
     </div>
 
   </div>
@@ -25,13 +25,13 @@
     <app-methods (methodsArrayUpdated)="onMethodsChange($event)"></app-methods>
   </div>
 
-  <div #anchor #calls class="anchor" id="calls">
-    <app-options [numberOfBells]="numberOfBells" (callsUpdated)="onCallsChange($event)" (workingBell)="onWorkingBellUpdate($event)"></app-options>
+  <div #anchor class="anchor" id="options">
+    <app-options [numberOfBells]="numberOfBells" (options)="onOptionsChange($event)"></app-options>
   </div>
 
   <div #anchor #practice class="anchor" id="practice">
     @if (showPracticeComponent) {
-      <app-practice [methods]="selectedMethods" [calls]="selectedCalls" [workingBell]="workingBell" ></app-practice>
+      <app-practice [methods]="methods" [options]="options"></app-practice>
     }
   </div>
 

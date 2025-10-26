@@ -32,7 +32,6 @@ export class MethodsComponent {
   }
 
   public applyFilter() {
-    console.log(this.methods);
     this.filteredMethods = this.methods
       .filter( (m:MethodDescriptor) => m.name.toLowerCase().indexOf(this.searchString.toLowerCase())>=0)
       .filter( (m:MethodDescriptor) => !this.selectedMethods.find( ({name}) => name === m.name));

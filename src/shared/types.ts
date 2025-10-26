@@ -20,8 +20,14 @@ export interface MethodDescriptor {
     [key: string]: string;
   }
 }
-export type CallOptions = ['None', 'Some', 'Lots'];
-export type CallsObject =  {plain: number, bobs: number, singles: number};
+
+
+export class PracticeOptions {
+  public bobs: boolean = false; 
+  public singles: boolean = false;
+  public workingBell: string = 'Random';
+};
+
 export type MethodsArray = Array<Method>;
 export type MethodDescriptorsArray = Array<MethodDescriptor>;
 

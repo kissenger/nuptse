@@ -7,21 +7,32 @@ export class Method {
   private _method: MethodDescriptor;
   private _numberOfBells: number;
   private _placebellObject: PlacebellObject;
+  private _leadsPerCourse: number;
+  private _leadHead: Row;
+  private _huntBells: Array<string>;
 
   constructor(method: MethodDescriptor) {
     this._method = method;
     this._numberOfBells = Utility.nBells(method.name);
     this._placebellObject = this._getPlaceBellObject();
+    this._leadHead = this._getLeadHead();
+    this._huntBells = this._getHuntBells(this._leadHead);
+    this._leadsPerCourse = this._numberOfBells -  this._huntBells.length;
   }
 
   /*
   * Public getters and functions
   */
-  public get leadLength()    { return this._placebellObject?.plain.length; }
-  public get numberOfBells() { return this._numberOfBells; }
-  public get name()          { return this._method.name; }
-  public get callPosition()  { return this._placebellObject.callPosition; }
-  public placebells(rowNumber:number, call:'plain'|'bob'|'single') { return this._placebellObject[call][rowNumber]; }
+  public get leadLength()      { return this._placebellObject?.plain.length; }
+  public get numberOfBells()   { return this._numberOfBells; }
+  public get name()            { return this._method.name; }
+  public get callPosition()    { return this._placebellObject.callPosition; }
+  public get huntBells()       { return this._huntBells; }
+  public get leadsPerCourse()  { return this._leadsPerCourse; }
+  
+  public placebells(rowNumber:number, call:'plain'|'bob'|'single') { 
+    return this._placebellObject[call][rowNumber]; 
+  }
 
   public transformRow(startRow: Array<string>, placeBells: Array<number>) {
     const outArr: Array<string> = [];
@@ -34,20 +45,27 @@ export class Method {
     return outArr;
   }
 
-  public getPlaceBells(rowNumber: number, call:'plain'|'bob'|'single') {
-    return this._placebellObject[call][rowNumber];
+  public getPlaceBells(rowNumber: number, call?:'bob'|'single') {
+    const callType = !call ? 'plain' : call;
+    return this._placebellObject[callType][rowNumber];
   }
 
-  // This works but isnt needed yet
-  // ================================
-  // private _getLeadHead(): Row {
-  //   let curRow: Row = Utility.getRoundsArray(this._numberOfBells);
-  //   for (let i = 0; i < this.leadLength; i++) {
-  //     let pb = this.getPlaceBells(i,'plain');
-  //     curRow = this.transformRow(curRow,pb)
-  //   }
-  //   return curRow
-  // }
+  /* A hunt bell is one that remains in the same place at the end of the lead,
+   * so here we compare the leadhead to rounds to return the bells where this crtieria is met. */
+  private _getHuntBells(leadHead: Row): Array<string> {
+    return leadHead.filter( (cv,i) => parseInt(cv) == i + 1);
+  }
+
+  // Leadhead in this context is the row that results from the application of 
+  // place notation for one full lead, from rounds.
+  private _getLeadHead(): Row {
+    let curRow: Row = Utility.getRoundsArray(this._numberOfBells);
+    for (let i = 0; i < this.leadLength; i++) {
+      let pb = this.getPlaceBells(i);
+      curRow = this.transformRow(curRow,pb)
+    }
+    return curRow
+  }
 
   // This maybe doesnt work
   // ================================

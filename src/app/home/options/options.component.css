@@ -8,11 +8,18 @@
 /* Styling for the cells */
 .grid-cell {
   padding: 10px;
+  display: flex;
+  align-items: center;
 }
 
 /* Ensuring the Select element takes full column width */
 .grid-cell select {
   width: 100%;
+}
+
+.grid-cell input {
+  display: flex;
+  /* margin-right: auto; */
 }
 
 .grid-margin {
