@@ -88,8 +88,6 @@ export class Practice {
     // increase the likelyhood of a call with each passing plain lead, 
     // unless its the hunt bell in which case make a call
     if (options.bobs || options.singles) {
-      // const rand = Utility.randomInteger(0,100);
-      // const threshold = 100 / this._leadsPerCourse * (this._plainLeadendCounter + 1);
       if (this._linearChance() || isHuntBell) {
         if (options.bobs && !options.singles) return 'bob';
         else if (!options.bobs && options.singles) return 'single';
@@ -104,10 +102,10 @@ export class Practice {
   }
 
   private _linearChance() {
-    const rand = Utility.randomInteger(0,1);
-    const thresh = 1 - (1 / this._leadsPerCourse * (this._plainLeadendCounter + 1));
+    const rand = Utility.randomInteger(0,100);
+    const thresh = 100 / this._leadsPerCourse * (this._plainLeadendCounter + 1);
     console.log(`rand: ${rand}\nthresh: ${thresh}`)
-    return rand > thresh;
+    return rand < thresh;
   }
 
 
