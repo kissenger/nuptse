@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, Input, OnChanges, Renderer2, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnChanges, Renderer2, ViewChild} from '@angular/core';
 import { MethodDescriptorsArray, PracticeOptions, RowToPrint } from '@shared/types';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, PercentPipe } from '@angular/common';
@@ -10,7 +10,8 @@ import { NavService } from '@shared/services/nav.service';
   imports: [FormsModule, CommonModule, PercentPipe],
   templateUrl: './practice.component.html',
   styleUrl: './practice.component.css',
-  standalone: true
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class PracticeComponent implements OnChanges{
@@ -21,11 +22,12 @@ export class PracticeComponent implements OnChanges{
   @Input() methods: MethodDescriptorsArray = [];
   @Input() options = new PracticeOptions;
   
-  @HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
-    if (["ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)) {
+  @HostListener('document:keydown', ['$event']) 
+  onKeydown(event: KeyboardEvent) {
+    // if (["ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)) {
       event.preventDefault();
       this.processKeyEvent(event.key);
-    }
+    // }
   }
 
   private _N_ROWS_TO_PRINT: number = 10;
