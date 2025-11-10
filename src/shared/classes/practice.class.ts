@@ -10,7 +10,7 @@ export class Practice {
   private _nextMethod: Method;
   private _currentRow: Array<string> = [];
   private _nextRow: Array<string> = [];
-  private _call?: null|'bob'|'single';
+  private _call: null|'bob'|'single' = null;
   private _numberOfBells: number;
   private _workingBell: string;
   private _options: PracticeOptions;
@@ -36,7 +36,7 @@ export class Practice {
   public get isLeadHead()      { return this._rowNumber <= 0; }
   public get isLeadEnd()       { return this._rowNumber === this._currentMethod.leadLength - 1; }
   public get isMethodCallRow() { return this._rowNumber === this._currentMethod.leadLength - 2; }
-  public get isCallRow()       { return this._rowNumber === this._currentMethod.leadLength - 3; }
+  public get isCallingRow()    { return this._currentMethod.callingPositions.some(c => c === this._rowNumber) }
   public get numberOfBells ()  { return this._numberOfBells; }
   public get workingBell()     { return this._workingBell; }
   public get wbMovement()      { return this._nextRow.indexOf(this._workingBell) - this._currentRow.indexOf(this._workingBell); } 
@@ -57,19 +57,18 @@ export class Practice {
         this._nextMethod = this._getNextMethod;
       }
 
-      const isHuntBell = this._checkHuntBell();
-      this._call = this._getCall(this._options, isHuntBell);
 
-      if (!this._call) this._plainLeadendCounter++;
-      else this._plainLeadendCounter = 0;
     } 
 
-    const placeBells = this._currentMethod.getPlaceBells(this._rowNumber, this._call!);
-    this._nextRow = this._currentMethod.transformRow(this._currentRow, placeBells!);
-
-    if (this.isCallRow) {
-      callString = this._call!;
+    // const placeBells = this._currentMethod.getPlaceBells(this._rowNumber, this._call!);
+    
+    if (this.isCallingRow) {
+      this._call = this._getCall(this._options, this.isHuntBell);
+      this._plainLeadendCounter = this._call ? 0 : this._plainLeadendCounter + 1;
+      callString = this._call;
     }
+
+    this._nextRow = this._currentMethod.transformRow(this._currentRow, this._rowNumber, this._call);
 
     if (this.isMethodCallRow) {
       if (this._currentMethod.name !== this._nextMethod.name) {
@@ -82,7 +81,7 @@ export class Practice {
   }
 
   /*
-  *  Randomly generate plain, bob or single
+  *  Randomly generate null, bob or single
   */
   private _getCall(options: PracticeOptions, isHuntBell: boolean) {
     // increase the likelyhood of a call with each passing plain lead, 
@@ -104,7 +103,7 @@ export class Practice {
   private _linearChance() {
     const rand = Utility.randomInteger(0,100);
     const thresh = 100 / this._leadsPerCourse * (this._plainLeadendCounter + 1);
-    console.log(`rand: ${rand}\nthresh: ${thresh}`)
+    // console.log(`rand: ${rand}\nthresh: ${thresh}`)
     return rand < thresh;
   }
 
@@ -150,7 +149,7 @@ export class Practice {
     }    
   }
 
-  private _checkHuntBell () {
+  private get isHuntBell() {
     const huntBells: Array<string> = this._currentMethod.huntBells;
     const workingBellPlace: string = (this._currentRow.indexOf(this._workingBell) + 1).toString();
     return huntBells.indexOf(workingBellPlace) > 0;

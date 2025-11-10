@@ -8,17 +8,23 @@ export type PlacebellArray = Array<Array<number>>
 
 export type PlacebellObject = {
   plain:  PlacebellArray,
-  bob:    PlacebellArray,
-  single: PlacebellArray,
-  callPosition: number
+  calls: Array<{
+    bob:    PlacebellArray,
+    single: PlacebellArray,
+    callRow: number
+  }>;
+
 }
 
 export interface MethodDescriptor {
   name: string,
   notation: string,
-  calls?: {
-    [key: string]: string;
-  }
+  // calls?: {
+  //   [key: string]: string;
+  // },
+  bob?: string,
+  single?: string,
+  callRow?: Array<number>
 }
 
 

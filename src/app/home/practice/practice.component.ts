@@ -228,7 +228,7 @@ export class PracticeComponent implements OnChanges{
   }
 
   applyStep(success: boolean) {
-    this.currentRow = this.practice.step()
+    this.currentRow = this.practice.step();
     if (this.currentRow.call) {
       const call = this.currentRow.call;
       this.createCall(call[0].toUpperCase() + call.slice(1));

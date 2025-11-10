@@ -1,4 +1,5 @@
 
+import { NumberLiteralType } from "typescript";
 import { MethodDescriptor, PlacebellArray, PlacebellObject, Row } from "../types";
 import { Utility } from '@shared/classes/utilities.class';
 
@@ -23,19 +24,42 @@ export class Method {
   /*
   * Public getters and functions
   */
-  public get leadLength()      { return this._placebellObject?.plain.length; }
-  public get numberOfBells()   { return this._numberOfBells; }
-  public get name()            { return this._method.name; }
-  public get callPosition()    { return this._placebellObject.callPosition; }
-  public get huntBells()       { return this._huntBells; }
-  public get leadsPerCourse()  { return this._leadsPerCourse; }
+  public get leadLength()        { return this._placebellObject?.plain.length; }
+  public get numberOfBells()     { return this._numberOfBells; }
+  public get name()              { return this._method.name; }
+  public get callingPositions()  { 
+    return this._placebellObject.calls.map(c => {
+      let cr = c.callRow - 3;
+      return cr < 0 ? this.leadLength + cr - 1 : cr;
+    }); 
+  }
+  public get huntBells()         { return this._huntBells; }
+  public get leadsPerCourse()    { return this._leadsPerCourse; }
   
-  public placebells(rowNumber:number, call:'plain'|'bob'|'single') { 
-    return this._placebellObject[call][rowNumber]; 
+
+  /*
+  * Returns an array containing the bell positions that are making a place for the next change
+  */
+  private _getPlaceBells(rowNumber:number, call:null|'bob'|'single'): Array<number> { 
+    if (call) {
+      for (let i = 0; i < this._placebellObject.calls.length; i++) {
+        const calls = this._placebellObject.calls[i];
+        if (rowNumber >= calls.callRow && rowNumber < calls.callRow + 3) {
+          if (calls[call].length >= rowNumber - calls.callRow + 1) {
+            return calls[call][rowNumber - calls.callRow];
+          } 
+        }      
+      }
+    }
+    return this._placebellObject.plain[rowNumber];
   }
 
-  public transformRow(startRow: Array<string>, placeBells: Array<number>) {
+  /*
+  * Given a starting row and row number, find the appropriate placebells and transform to give a new row
+  */
+  public transformRow(startRow: Array<string>, rowNumber: number, call?:null|'bob'|'single') {
     const outArr: Array<string> = [];
+    const placeBells = this._getPlaceBells(rowNumber, call ?? null);
     let modifier = 0;
     startRow.forEach( (_, i) => {
       if (placeBells.includes(i+1)) modifier = 0;
@@ -43,11 +67,6 @@ export class Method {
       outArr.push(startRow[i+modifier])
     })
     return outArr;
-  }
-
-  public getPlaceBells(rowNumber: number, call?:'bob'|'single') {
-    const callType = !call ? 'plain' : call;
-    return this._placebellObject[callType][rowNumber];
   }
 
   /* A hunt bell is one that remains in the same place at the end of the lead,
@@ -61,8 +80,7 @@ export class Method {
   private _getLeadHead(): Row {
     let curRow: Row = Utility.getRoundsArray(this._numberOfBells);
     for (let i = 0; i < this.leadLength; i++) {
-      let pb = this.getPlaceBells(i);
-      curRow = this.transformRow(curRow,pb)
+      curRow = this.transformRow(curRow, i)
     }
     return curRow
   }
@@ -118,54 +136,75 @@ export class Method {
   }
 
   /*
-  *  Return full course place notation for bob and single courses
+  *  Return full course place notation for plain course and a calls object
+  *  Calls object is an array containing
+  *    callEffect - change number at which call takes effect
+  *    bob - change notation for a bob at this change
+  *    single - change nottation for a single at this change
   */
   private _getPlaceBellObject() {
 
     let plain: PlacebellArray = this._method.notation.split(',').flatMap(pn => this._unpackPlaceNotation(pn));
     const n = this._numberOfBells;
+    let callRow: Array<number>;  // row at which the call takes affect
 
-    /*
-    *  Find the last change that does not have a single placebell in 1pb
-    */
-    const callPosition = plain.findLastIndex( r => r.length > 1 || r[0] !== 1 );
-    const affectedChanges = plain.slice(callPosition);
+    if (this._method.callRow) {
 
-    let bob: PlacebellArray = [...plain];
-    let single: PlacebellArray = [...plain];
-    /*
-    *  The rules for a BOB:
-    *  For an even method - move pb 2 right is pb = 2, 2 left if pb is behind
-    *  For an odd method - pb of interest is not a 1,2,3 move anything else to a 3.
-    *  The rules for a SINGLE:
-    *  For an even method - move pb 2 right is pb = 2, 2 left if pb is behind
-    *  For an odd method - pb of interest is not a 1,2,3 or last bell, move anything else to a 3.
-    */ 
+      callRow = [2,8]; 
 
-    if (this._numberOfBells % 2 === 0) { //even
-      if (callPosition !== plain.length - 1) throw new Error('Something went wrong getting bobs and singles for even method')
-      if (plain[callPosition].includes(2)) {
-        bob.splice(callPosition, 1, [1,4]);
-        single.splice(callPosition, 1, [1,2,3,4]);
-      } else {
-        bob.splice(callPosition,1,[1, n-2]);
-        single.splice(callPosition,1,[1, n-2, n-1, n]);
-      }
+    } else {
 
-    } else { //odd
-      if (callPosition === plain.length - 2) {
-        if (plain.slice(callPosition)[0].every(e=>![1,2,3].includes(e))) {
-          bob.splice(callPosition,2,...[[3],[1]]);
-          single.splice(callPosition,2,...[[3],[1, 2, 3]]);
-        }
-      } if (callPosition === plain.length - 1) {
-        const a = affectedChanges[0]
-        bob.splice(callPosition, 1, [1,plain[callPosition][1]+2,plain[callPosition][2]]);
-        single.splice(callPosition, 1, [1,a[1],a[1]+1,a[1]+2,a[2]]);
-      }
+      /*
+      *  Find the first change, working from the back, that:
+      *   - has more than one bell making a place, (even methods always(?) have more that just the treble making  aplace at the LE) OR
+      *   - the does not have a place being made in 1pb (for odd methods)
+      */
+
+      callRow = [plain.findLastIndex( r => r.length > 1 || r[0] !== 1 )]
+
     }
 
-    return {plain, bob, single, callPosition};
+    const calls = callRow.map( c => {
+
+
+      let b: PlacebellArray = [];
+      let s: PlacebellArray = [];
+
+      if (this._method.bob && this._method.single) {
+        b = this._unpackPlaceNotation(this._method.bob);
+        s = this._unpackPlaceNotation(this._method.single);
+
+      } else {
+        let a = plain[c];
+        if ( this.compareArrays(a, [1, 2]) ) {
+          b = [[1, 4]];                     //    move the bell making 2nds two to the right
+          s = [[1, 2, 3, 4]];               //    first four bells make a place
+
+        } else if (this.compareArrays(a, [1, n])) {
+          b = [[1, n-2]];                   //    move the bell make place not in 2nds two to the left
+          s = [[1, n-2, n-1, n]];           //    treble and last three bells make a place
+        
+        } else if (this.compareArrays(a, [1, 2, n])) { 
+          b = [[1, 4, n]];                  // replace 2nds for 4ths
+          s = [[1, 2, 3, 4, n]];            // all front bells make a place
+
+        } else if (this.compareArrays(a, [n])) {
+          b = [[3]];                        //    make 3rds
+          s = [[3],[1,2,3]];                //    make long 3rds
+        }
+      }
+
+      return {callRow: c, bob: b, single: s}
+
+    })
+
+
+    return {plain, calls};
 
   }
+
+  private compareArrays(arr1: Array<any>, arr2: Array<any>) {
+    return arr1.every((v, i) => v === arr2[i])
+  }
+
 }
