@@ -28,6 +28,8 @@ export class HomeComponent {
   public hideFwdBtn  = true;
   public disableFwdBtn = false;
   public showPracticeComponent = false;
+  public showMethodsComponent = false;
+  public suppressBobsOption = false;
   public workingBell: string = '';
 
   constructor(
@@ -42,7 +44,8 @@ export class HomeComponent {
     this._scrollSpy.init(this.anchors, this.scrollContainer); 
     this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
       if (isect.ratio > 0.2) {
-        this.showPracticeComponent = isect.id === 'practice'
+        this.showPracticeComponent = isect.id === 'practice';
+        this.showMethodsComponent = isect.id !== 'home';        // hiding method component is the only way to get the input to focus when it is created
         this._ref.detectChanges();    // needed to fire ngClass, not sure why
       }
     })
@@ -53,6 +56,7 @@ export class HomeComponent {
     if (ms.length > 0) {
       this.numberOfBells = Utility.nBells(ms[0].name);
     }
+    this.suppressBobsOption = this.methods.every( (m) => m.flags?.includes('noBobs'));
   }
 
   onOptionsChange(o: PracticeOptions) {

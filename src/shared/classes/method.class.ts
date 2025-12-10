@@ -1,106 +1,101 @@
 
-import { NumberLiteralType } from "typescript";
-import { MethodDescriptor, PlacebellArray, PlacebellObject, Row } from "../types";
+import { Bell, MethodCall, MethodDescriptor, PlacebellArray, PlaceNotation, Rows, Sequence, TouchCall } from "../types";
 import { Utility } from '@shared/classes/utilities.class';
-
 
 export class Method {
   private _method: MethodDescriptor;
   private _numberOfBells: number;
-  private _placebellObject: PlacebellObject;
   private _leadsPerCourse: number;
-  private _leadHead: Row;
-  private _huntBells: Array<string>;
+  private _firstLead: Rows;
+  private _leadHead: Sequence;
+  private _huntBells: Array<Bell>;
+  private _touchEffectRows: Array<number>;
+  private _plain: PlacebellArray;
+  private _calls: {bob: PlacebellArray, single: PlacebellArray};
+  private _shortName: string;
+  private _isPrinciple: boolean;
+  private _noBobsFlag: boolean;
 
   constructor(method: MethodDescriptor) {
     this._method = method;
+    this._shortName = method.shortName ?? this.name.split(' ')[0];
     this._numberOfBells = Utility.nBells(method.name);
-    this._placebellObject = this._getPlaceBellObject();
-    this._leadHead = this._getLeadHead();
+    this._plain = this._method.notation.split(',').flatMap(pn => this._unpackPlaceNotation(pn));
+    this._touchEffectRows = this._method.touchEffectRows ?? [this._plain.findLastIndex( r => r.length > 1 || r[0] !== 1 )]
+    this._calls = this._getCalls();
+    this._firstLead = this.getLead(this._plain);
+    this._leadHead = this._firstLead[this._firstLead.length - 1].sequence;
     this._huntBells = this._getHuntBells(this._leadHead);
     this._leadsPerCourse = this._numberOfBells -  this._huntBells.length;
+    this._isPrinciple = this._huntBells.length === 0;
+    this._noBobsFlag = method.flags?.includes('noBobs') ?? false;
+  console.log(this);
+
   }
+
 
   /*
   * Public getters and functions
   */
-  public get leadLength()        { return this._placebellObject?.plain.length; }
+  public get shortName()         { return this._shortName; } 
+  public get firstLead()         { return this._firstLead; }
+  public get leadLength()        { return this._firstLead.length - 1; }
   public get numberOfBells()     { return this._numberOfBells; }
   public get name()              { return this._method.name; }
-  public get callingPositions()  { 
-    return this._placebellObject.calls.map(c => {
-      let cr = c.callRow - 3;
-      return cr < 0 ? this.leadLength + cr - 1 : cr;
-    }); 
-  }
   public get huntBells()         { return this._huntBells; }
+  public get isPrinciple()       { return this._isPrinciple; }
   public get leadsPerCourse()    { return this._leadsPerCourse; }
-  
+  public get touchEffectRows()   { return this._touchEffectRows; }
+  public get noBobsFlag()        { return this._noBobsFlag; }
 
   /*
-  * Returns an array containing the bell positions that are making a place for the next change
-  */
-  private _getPlaceBells(rowNumber:number, call:null|'bob'|'single'): Array<number> { 
-    if (call) {
-      for (let i = 0; i < this._placebellObject.calls.length; i++) {
-        const calls = this._placebellObject.calls[i];
-        if (rowNumber >= calls.callRow && rowNumber < calls.callRow + 3) {
-          if (calls[call].length >= rowNumber - calls.callRow + 1) {
-            return calls[call][rowNumber - calls.callRow];
-          } 
-        }      
+   * Returns a placebell array for the lead end, with the requested calls implemented at the calling positions
+   */
+  public getPlaceBells(touchCalls: Map<number, TouchCall | MethodCall>): PlacebellArray {
+    
+    const pb = [...this._plain];
+    touchCalls.forEach( (call, row) => {
+      if (call === 'bob' || call === 'single') {
+        pb.splice(row, this._calls[call].length, ...this._calls[call]);
       }
-    }
-    return this._placebellObject.plain[rowNumber];
+    });
+    
+    return pb;
   }
 
   /*
-  * Given a starting row and row number, find the appropriate placebells and transform to give a new row
+  * Given a starting row and place notation, transform to give a new row
   */
-  public transformRow(startRow: Array<string>, rowNumber: number, call?:null|'bob'|'single') {
-    const outArr: Array<string> = [];
-    const placeBells = this._getPlaceBells(rowNumber, call ?? null);
+  public transformRow(startRow: Sequence, placeBells: Array<number>): Sequence {
+    const sequence: Sequence = [];
     let modifier = 0;
     startRow.forEach( (_, i) => {
       if (placeBells.includes(i+1)) modifier = 0;
       else modifier = modifier <= 0 ? 1 : -1;
-      outArr.push(startRow[i+modifier])
+      sequence.push(startRow[i+modifier])
     })
-    return outArr;
+    return sequence;
   }
 
   /* A hunt bell is one that remains in the same place at the end of the lead,
    * so here we compare the leadhead to rounds to return the bells where this crtieria is met. */
-  private _getHuntBells(leadHead: Row): Array<string> {
+  private _getHuntBells(leadHead: Sequence): Array<Bell> {
     return leadHead.filter( (cv,i) => parseInt(cv) == i + 1);
   }
 
-  // Leadhead in this context is the row that results from the application of 
-  // place notation for one full lead, from rounds.
-  private _getLeadHead(): Row {
-    let curRow: Row = Utility.getRoundsArray(this._numberOfBells);
-    for (let i = 0; i < this.leadLength; i++) {
-      curRow = this.transformRow(curRow, i)
-    }
-    return curRow
+  /*
+   * Returns an array of changes given a placebell array and a starting row (leadhead)
+   */
+  public getLead(placebellArray: PlacebellArray, leadHead?: Sequence): Rows {
+
+    let rows: Rows = [{sequence: leadHead ?? Utility.getRoundsArray(this._numberOfBells)}];
+    placebellArray.forEach( pb => {
+      const startRow: Sequence = rows[rows.length-1].sequence;
+      rows.push({sequence: this.transformRow(startRow, pb)});
+    })
+
+    return rows;
   }
-
-  // This maybe doesnt work
-  // ================================
-  // private _getCoursingOrder(startRow: Row, leadHead: Row): Array<string> {
-  //     const coursingOrder = []; 
-  //     let idx: number = 2;
-  //     for (let i = 1; i < startRow.length; i++) {
-  //       const n = this._leadHead[idx-1];
-  //       console.log(startRow,leadHead,idx,n)
-  //       coursingOrder.push(n);
-  //       console.log(Utility.charToNumb(n))
-  //       console.log(startRow[Utility.charToNumb(n)])
-  //       idx = Utility.charToNumb(startRow[Utility.charToNumb(n)-1]);
-  //     }
-  //     return coursingOrder
-  // }
-
 
   /*
   * Apply symmetry to the provided array
@@ -113,7 +108,7 @@ export class Method {
   * Convert place notation string into an array of place making bells for a leadend
   */
 
-  private _unpackPlaceNotation(pn: string): PlacebellArray {
+  private _unpackPlaceNotation(pn: PlaceNotation): PlacebellArray {
     const array: PlacebellArray = [];
     let placeBells: Array<number> = [];
 
@@ -124,12 +119,12 @@ export class Method {
         placeBells = [];
       } else {
         // notation must be numerical as relies on array element numbers
-        placeBells.push(Utility.charToNumb(char));
+        placeBells.push(Utility.charToNumb(<Bell>char));
       }
     } 
     array.push(placeBells);
 
-    if (array.length > 5) {
+    if (array.length > 4) {
       return this._applyPalendromicSymmetry(array);
     }
     return array
@@ -137,69 +132,45 @@ export class Method {
 
   /*
   *  Return full course place notation for plain course and a calls object
-  *  Calls object is an array containing
-  *    callEffect - change number at which call takes effect
+  *  Calls object is an objec
   *    bob - change notation for a bob at this change
   *    single - change nottation for a single at this change
   */
-  private _getPlaceBellObject() {
+  private _getCalls(): {bob: PlacebellArray, single: PlacebellArray} {
 
-    let plain: PlacebellArray = this._method.notation.split(',').flatMap(pn => this._unpackPlaceNotation(pn));
-    const n = this._numberOfBells;
-    let callRow: Array<number>;  // row at which the call takes affect
+    let bob:    PlacebellArray = [];
+    let single: PlacebellArray = [];
 
-    if (this._method.callRow) {
-
-      callRow = [2,8]; 
+    if (this._method.bob && this._method.single) {
+      // ASSUMPTION: If one call type is defined in lib, then the other is too
+      bob =    this._unpackPlaceNotation(<PlaceNotation>this._method.bob);
+      single = this._unpackPlaceNotation(this._method.single);
 
     } else {
+      // ASSUMPTION: If there is more than one calling row per LE, then notation for plain 
+      // course is the same at both positions
+      let a = this._plain[this._touchEffectRows[0]];
+      const n = this._numberOfBells;
 
-      /*
-      *  Find the first change, working from the back, that:
-      *   - has more than one bell making a place, (even methods always(?) have more that just the treble making  aplace at the LE) OR
-      *   - the does not have a place being made in 1pb (for odd methods)
-      */
+      if ( this.compareArrays(a, [1, 2]) ) {
+        bob =    [[1, 4]];                     //    move the bell making 2nds two to the right
+        single = [[1, 2, 3, 4]];               //    first four bells make a place
 
-      callRow = [plain.findLastIndex( r => r.length > 1 || r[0] !== 1 )]
+      } else if (this.compareArrays(a, [1, n])) {
+        bob =    [[1, n-2]];                   //    move the bell make place not in 2nds two to the left
+        single = [[1, n-2, n-1, n]];           //    treble and last three bells make a place
+      
+      } else if (this.compareArrays(a, [1, 2, n])) { 
+        bob =    [[1, 4, n]];                  // replace 2nds for 4ths
+        single = [[1, 2, 3, 4, n]];            // all front bells make a place
 
+      } else if (this.compareArrays(a, [n])) {
+        bob =    [[3]];                        //    make 3rds
+        single = [[3],[1,2,3]];                //    make long 3rds
+      }
     }
 
-    const calls = callRow.map( c => {
-
-
-      let b: PlacebellArray = [];
-      let s: PlacebellArray = [];
-
-      if (this._method.bob && this._method.single) {
-        b = this._unpackPlaceNotation(this._method.bob);
-        s = this._unpackPlaceNotation(this._method.single);
-
-      } else {
-        let a = plain[c];
-        if ( this.compareArrays(a, [1, 2]) ) {
-          b = [[1, 4]];                     //    move the bell making 2nds two to the right
-          s = [[1, 2, 3, 4]];               //    first four bells make a place
-
-        } else if (this.compareArrays(a, [1, n])) {
-          b = [[1, n-2]];                   //    move the bell make place not in 2nds two to the left
-          s = [[1, n-2, n-1, n]];           //    treble and last three bells make a place
-        
-        } else if (this.compareArrays(a, [1, 2, n])) { 
-          b = [[1, 4, n]];                  // replace 2nds for 4ths
-          s = [[1, 2, 3, 4, n]];            // all front bells make a place
-
-        } else if (this.compareArrays(a, [n])) {
-          b = [[3]];                        //    make 3rds
-          s = [[3],[1,2,3]];                //    make long 3rds
-        }
-      }
-
-      return {callRow: c, bob: b, single: s}
-
-    })
-
-
-    return {plain, calls};
+    return {bob, single};
 
   }
 

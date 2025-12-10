@@ -1,4 +1,5 @@
-import { MethodsArray, MethodDescriptorsArray, RowToPrint, PracticeOptions } from "../types";
+import { Call } from "@angular/compiler";
+import { MethodsArray, MethodDescriptorsArray, PracticeOptions, PlacebellArray, Row, Calls, Bell, Rows, Sequence, TouchCall } from "../types";
 import { Method } from "./method.class";
 import { Utility } from "./utilities.class";
 
@@ -7,151 +8,173 @@ export class Practice {
   private _rowNumber: number; //row number within lead end
   private _methods: MethodsArray;
   private _currentMethod: Method;
-  private _nextMethod: Method;
-  private _currentRow: Array<string> = [];
-  private _nextRow: Array<string> = [];
-  private _call: null|'bob'|'single' = null;
+  private _nextMethod: Method | null = null;
   private _numberOfBells: number;
-  private _workingBell: string;
+  private _workingBell: Bell;
   private _options: PracticeOptions;
-  private _isFirstFlag = true;
-  private _plainLeadendCounter: number = 0;
+  private _plainCounter: number = 0;
   private _leadsPerCourse: number;
+  private _rows: Rows;
+  private _roundsArray: Sequence;
+  private _leadHead: Sequence;
   
   constructor(methods: MethodDescriptorsArray, options: PracticeOptions) {
     this._methods = methods.map(m=>new Method(m));
     this._currentMethod = this._methods[0];
-    this._nextMethod = this._getNextMethod;
     this._options = options;
     this._rowNumber = -1;     // row number in lead (resets to 0 at each lead end)
     this._numberOfBells = this._methods[0].numberOfBells;
     this._workingBell = this._getWorkingBell(this._options.workingBell);
-    this._nextRow = Utility.getRoundsArray(this._numberOfBells);  //this will become _currentRow when step() is called 
-  
-    // used to ensure there is at least one touch call per 'course'
+    this._roundsArray = Utility.getRoundsArray(this.numberOfBells);
+    this._leadHead = this._roundsArray;
     this._leadsPerCourse = this._methods[0].leadsPerCourse;
+    this._rows = this._getLead(this._roundsArray, true);
   }
 
-  // Public getters and setters 
-  public get isLeadHead()      { return this._rowNumber <= 0; }
-  public get isLeadEnd()       { return this._rowNumber === this._currentMethod.leadLength - 1; }
-  public get isMethodCallRow() { return this._rowNumber === this._currentMethod.leadLength - 2; }
-  public get isCallingRow()    { return this._currentMethod.callingPositions.some(c => c === this._rowNumber) }
-  public get numberOfBells ()  { return this._numberOfBells; }
-  public get workingBell()     { return this._workingBell; }
-  public get wbMovement()      { return this._nextRow.indexOf(this._workingBell) - this._currentRow.indexOf(this._workingBell); } 
- 
-  // Step through leadend (increment row number and get next change)
-  public step(): RowToPrint {
+  // Small functions
+  public get isLeadHead()          { return this._rowNumber === this._currentMethod.leadLength }
+  public get isLeadEnd()           { return this._rowNumber === this._currentMethod.leadLength - 1; }
+  public get numberOfBells ()      { return this._numberOfBells; }
+  public get workingBell()         { return this._workingBell; }
+  public get huntBells()           { return this._currentMethod.huntBells};
+  public get roundsArray()         { return this._roundsArray };
+  public get bellsThatAreHunting() { return this._currentMethod.huntBells.map(hb=>this._leadHead[parseInt(hb)-1]); }
+  public get wbMovement(): number  { 
+    let iNext = this._getBellPlace(this._workingBell, this._rowNumber+1);
+    let iThis = this._getBellPlace(this._workingBell, this._rowNumber);
+    return iNext - iThis
+  } 
+  private _getBellPlace(bell: Bell, rowNumber: number): number { return this._rows[rowNumber].sequence.indexOf(bell)};
+  public isBellInTheHunt(bell: Bell): boolean { return this.bellsThatAreHunting.includes(bell) };
+  public isWorkingBell(bell: Bell): boolean   { return this._workingBell === bell };
 
-    let callString: string | null = null;
-    this._rowNumber = this.isLeadEnd ? 0 : this._rowNumber + 1;
-    this._currentRow = this._nextRow;
+  /*
+  * Get all the Rows in the next leadend, complete with calls and specific flags 
+  */
+  private _getLead(leadHead: Sequence, isFirstLead?: boolean): Rows {
+
+    // determine calls for this lead and calculate rows
+    const CALL_OFFSET  = -3;   
+
+    // get this leadend with only touchcalls implemented, as we need to know the leadend in order
+    // to determine if a method change is required (only applicable if its a principle)
+    const calls: Calls = new Map(this._currentMethod.touchEffectRows.map( r => [r, this._getCall(this._options)]));
+    const placeBells: PlacebellArray = this._currentMethod.getPlaceBells(calls);
+    const rows: Rows = this._currentMethod.getLead(placeBells, leadHead);
+
+    // put touch calls and flags on the Rows
+    calls.forEach( (call, rowNumber) => rows[rowNumber + CALL_OFFSET < 0 ? 0 : rowNumber + CALL_OFFSET].call = call );
+    rows[rows.length - 1].isLeadend = true;
+    rows[0].isLeadhead = true;
+
+    // manage change of method
+    if (this._currentMethod.isPrinciple && this._isTrebleLeadingAtLeadend(rows)) {
+      this._nextMethod = this._getRandomMethod;    // force method change
+    } else if (!this._currentMethod.isPrinciple) {
+      this._nextMethod = this._getNextMethod;      // change that method will remain unchanged
+    }
     
-    if (this.isLeadHead) {
-      if (this._isFirstFlag) {
-        callString = 'Go ' + this._currentMethod?.name;
-        this._isFirstFlag = false;
-      } else {
-        this._currentMethod = this._nextMethod;
-        this._nextMethod = this._getNextMethod;
-      }
-
-
-    } 
-
-    // const placeBells = this._currentMethod.getPlaceBells(this._rowNumber, this._call!);
-    
-    if (this.isCallingRow) {
-      this._call = this._getCall(this._options, this.isHuntBell);
-      this._plainLeadendCounter = this._call ? 0 : this._plainLeadendCounter + 1;
-      callString = this._call;
+    // update rows with method calls
+    if (isFirstLead) rows[0].call = `GO ${this._currentMethod.shortName}`;
+    if (this._nextMethod) {
+      const methodCallRow = this._currentMethod.touchEffectRows.slice(-1)[0] + CALL_OFFSET + 1;
+      rows[methodCallRow].call = this._nextMethod.shortName;
     }
 
-    this._nextRow = this._currentMethod.transformRow(this._currentRow, this._rowNumber, this._call);
+    return rows;
+  }
 
-    if (this.isMethodCallRow) {
-      if (this._currentMethod.name !== this._nextMethod.name) {
-        callString = this._nextMethod.name.split(' ')[0];
-      }
+  /*
+  *  Step through leadend (increment row number and get next change)
+  */
+  public step(): Row {
+
+    this._rowNumber++;
+    if (this.isLeadHead) {   // not triggered for first row of practice session
+      this._rowNumber = 0;
+      if (this._nextMethod) this._currentMethod = this._nextMethod;
+      this._leadHead = this._rows[this._rows.length - 1].sequence;
+      this._rows = this._getLead(this._leadHead);
     }
 
-    return {sequence: this._currentRow, isLeadEnd: this.isLeadEnd, call: callString}
+    return this._rows[this._rowNumber];
 
   }
 
   /*
   *  Randomly generate null, bob or single
   */
-  private _getCall(options: PracticeOptions, isHuntBell: boolean) {
+  private _getCall(options: PracticeOptions): TouchCall {
+
     // increase the likelyhood of a call with each passing plain lead, 
     // unless its the hunt bell in which case make a call
-    if (options.bobs || options.singles) {
-      if (this._linearChance() || isHuntBell) {
-        if (options.bobs && !options.singles) return 'bob';
-        else if (!options.bobs && options.singles) return 'single';
-        else {
-          const rand = Utility.randomInteger(0,100);
-          if (rand < 70) return 'bob';
-          return 'single'
-        }
+    let call: TouchCall = null;
+    let array: Array<TouchCall> = []
+
+    if (this._linearChance || this.isBellInTheHunt(this._workingBell)) {
+      if (options.bobs && !this._currentMethod.noBobsFlag) array.push('bob');
+      else if (options.singles) array.push('single');
+
+      if (array.length === 0) call = null;
+      else if (array.length === 1) call = array[0];
+      else {
+        const rand = Utility.randomInteger(0,100);
+        if (rand < 70) call = 'bob';
+        call = 'single'
       }
     }
-    return null;
+
+    this._plainCounter = call ? 0 : this._plainCounter + 1;
+    return call;
   }
 
-  private _linearChance() {
-    const rand = Utility.randomInteger(0,100);
-    const thresh = 100 / this._leadsPerCourse * (this._plainLeadendCounter + 1);
-    // console.log(`rand: ${rand}\nthresh: ${thresh}`)
+  private get _linearChance(): Boolean {
+    const rand = Utility.randomInteger(0,80);
+    const thresh = 100 / this._leadsPerCourse * (this._plainCounter + 1);
+    console.log(`Touch Call: Rolled ${rand}, threshold is ${thresh}`)
     return rand < thresh;
   }
 
+  private _isTrebleLeadingAtLeadend(rows:Rows): Boolean {
+    return rows[rows.length - 1].sequence[0] === '1';
+  }
 
-  // private _exponentialChance() {
 
-  //   // Calculate the constant base of the exponential function
-  //   const MAX_ITER = this._leadsPerCourse;
-  //   const BASE_CHANCE = 0.1;  // 10% change of success on first iteration
-  //   const DECAY_FACTOR = 0.5;
-  //   const baseFactor = 1 - BASE_CHANCE;
-  //   const chanceToFail = Math.pow(baseFactor, (this._plainLeadendCounter+1));
-
-  //   const rand = Math.random();
-  //   console.log(`rand: ${rand}\nthresh: ${chanceToFail}`)
-
-  //   if (this._plainLeadendCounter === MAX_ITER) return true;
-  //   else return rand > chanceToFail;
-
-  // }
   /*
   *  Randomly change the method in two steps
   *  1) role the dice to determine whether the method should change
   *  2) role the dice to determine which method to change to 
   *  This ensures that you dont necessarily change methods every lead, and get a few leads 
   */
-  private get _getNextMethod(): Method {
+  private get _getNextMethod(): Method | null {
+
     if (this._methods.length > 1) {
-        if (Utility.randomInteger(1,10) > 6) {
-          const arr = this._methods!.filter(m => m.name !== this._currentMethod!.name);
-          return arr[Utility.randomInteger(0, arr.length-1)];
-        }
+      const random = Utility.randomInteger(1,10);
+      const thresh = 6;
+      console.log(`Method change - rolled a ${random}, threshold is ${thresh}`);
+      if (random > thresh) {
+        return this._getRandomMethod;
+      }
     }
-    return this._currentMethod;
+    return null;
   }
 
-  private _getWorkingBell(input: string): string {
+  /*
+  *  Select at random another method in the list
+  */
+  private get _getRandomMethod() {
+    const arr = this._methods!.filter(m => m.name !== this._currentMethod!.name);
+    const newMethod = arr[Utility.randomInteger(0, arr.length-1)];
+    return newMethod;
+  }
+
+  private _getWorkingBell(input: string): Bell {
     if (input === 'Random') {
       const wb = Utility.randomInteger(this._currentMethod.huntBells.length + 1, this.numberOfBells);
       return Utility.numbToChar(wb);
     } else {
-      return input;
+      return <Bell>input;
     }    
   }
 
-  private get isHuntBell() {
-    const huntBells: Array<string> = this._currentMethod.huntBells;
-    const workingBellPlace: string = (this._currentRow.indexOf(this._workingBell) + 1).toString();
-    return huntBells.indexOf(workingBellPlace) > 0;
-  }
 }

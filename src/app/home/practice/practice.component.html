@@ -5,21 +5,35 @@
     <div class="practice-container">
 
       <div class="generic-flex-grow-container">
+
         <div class="stats">
-          Correct: {{successCount}}<br>
-          Errors: {{errorCount}}<br>
-          Success Rate: {{successCount/(successCount+errorCount) | percent: '1.1-1'}}
+          <div class="statsbox">
+            <div class="title">Rows</div>
+            <div class="stat">{{rowCount}}</div>
+          </div>
+          <div #scorebox class="statsbox">
+            <div class="title">Score</div>
+            <div class="stat">{{(rowCount-errCount)/rowCount | percent: '1.1-1'}}</div>            
+          </div>
+          <div class="statsbox">
+            <div class="title">Timer</div>
+            <div class="stat">{{_timeInMinsAndSecs(timeInSeconds)}}</div>            
+          </div>                    
         </div>
+
         <div class="svg-container">
-          <svg #svg height="200" width="200"></svg>
-          <div #callbox class="callbox"></div>
+          <svg #svg [attr.width]="SVG_WIDTH" [attr.height]="SVG_HEIGHT"></svg>
         </div>
+
+        <div #callbox class="callbox">
+        </div>
+
       </div>
 
       <div class="arrow-btns">
-        <button (click)="processKeyEvent('ArrowLeft')"> &swarr;</button>  
-        <button (click)="processKeyEvent('ArrowDown')"> &darr;</button>  
-        <button (click)="processKeyEvent('ArrowRight')">&searr;</button>  
+        <button (click)="handleKeyPress('ArrowLeft')"> &swarr;</button>  
+        <button (click)="handleKeyPress('ArrowDown')"> &darr;</button>  
+        <button (click)="handleKeyPress('ArrowRight')">&searr;</button>  
       </div>
 
     </div>

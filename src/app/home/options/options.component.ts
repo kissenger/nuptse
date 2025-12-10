@@ -26,24 +26,18 @@ export class OptionsComponent {
     this.onUpdatedOptions();
   };
 
-  private _numberOfBells = 0;
-  public bobs: boolean = false;
-  public singles: boolean = false;
-  public workingBell: string = 'Random';
-  public get workingBellOptions() {
-    return ['Random',...Utility.getRoundsArray(this._numberOfBells)]
-  };
+  @Input() suppressBobsOption: boolean = false;
+
+  private _numberOfBells?: number;
+  public practiceOptions = new PracticeOptions();
+  public workingBellOptions = ['Random', ...Utility.getRoundsArray(this._numberOfBells!)];
 
   constructor(
     public nav: NavService
   ) {}
   
   public onUpdatedOptions() {
-    this.options.emit({
-      workingBell: this.workingBell,
-      bobs: this.bobs, 
-      singles: this.singles
-    });
+    this.options.emit(this.practiceOptions);
   }
 
 }

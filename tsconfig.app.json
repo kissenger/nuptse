@@ -10,7 +10,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "src/app/home/practice/practice.component.old.tsold"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]

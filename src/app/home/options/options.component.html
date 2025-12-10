@@ -5,7 +5,7 @@
         <label for="selectBell">Working bell:</label>
       </div>
       <div class="grid-cell grid-margin">
-        <select #selectWorkingBell [(ngModel)]="workingBell" (click)="onUpdatedOptions()" name="selectBell" id="selectBell">
+        <select #selectWorkingBell [(ngModel)]="practiceOptions.workingBell" (click)="onUpdatedOptions()" name="selectBell" id="selectBell">
           @for(wbOption of workingBellOptions; track wbOption) {
             <option value="{{wbOption}}">{{wbOption}}</option>
           }
@@ -16,15 +16,36 @@
         <label for="selectBobs">Bobs:</label>
       </div>
       <div class="grid-cell grid-margin">
-        <input #selectBobs type="checkbox" [(ngModel)]="bobs" (change)="onUpdatedOptions()" name="selectBobs" id="selectBobs">
+        <input [disabled]="suppressBobsOption" type="checkbox" [(ngModel)]="practiceOptions.bobs" (change)="onUpdatedOptions()" name="selectBobs" id="selectBobs">
       </div>
 
       <div class="grid-cell">
         <label for="selectSingles">Singles:</label>
       </div>
       <div class="grid-cell">
-        <input #selectSingles type="checkbox" [(ngModel)]="singles" (change)="onUpdatedOptions()" name="selectSingles" id="selectSingles">
+        <input type="checkbox" [(ngModel)]="practiceOptions.singles" (change)="onUpdatedOptions()" name="selectSingles" id="selectSingles">
       </div>
+
+      <div class="grid-cell">
+        <label for="showLeadend">Show Leadend:</label>
+      </div>
+      <div class="grid-cell">
+        <input type="checkbox" [(ngModel)]="practiceOptions.showLeadend" (change)="onUpdatedOptions()" name="showLeadend" id="showLeadend">
+      </div>
+
+      <div class="grid-cell">
+        <label for="showHuntBells">Show Hunt Bells:</label>
+      </div>
+      <div class="grid-cell">
+        <input type="checkbox" [(ngModel)]="practiceOptions.showHuntBells" (change)="onUpdatedOptions()" name="showHuntBells" id="showHuntBells">
+      </div>
+
+      <div class="grid-cell">
+        <label for="showHuntBellsTrebleOnly">{{"   "}}Only Treble:</label>
+      </div>
+      <div class="grid-cell">
+        <input [disabled]="!practiceOptions.showHuntBells" type="checkbox" [(ngModel)]="practiceOptions.showHuntBellsTrebleOnly" (change)="onUpdatedOptions()" name="showHuntBellsTrebleOnly" id="showHuntBellsTrebleOnly">
+      </div>      
   </div>
 
   <div class="nav-btn-container"> 

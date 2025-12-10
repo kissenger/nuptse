@@ -3,81 +3,81 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
 }
 
-svg {
+.stats {
   display: flex;
-  margin-block: 1rem;
-  margin-inline: auto;
+  justify-content: space-between;
+  /* border-bottom: 1px lightgray solid; */
+  padding-bottom: 0.5rem;
+}
+
+.statsbox {
+  width: 30%;
+  border-radius: 10px;
+}
+
+.title {
+  text-align: center;
+  font-size: normal;
+}
+
+.stat {
+  text-align: center;
+  font-size: xx-large;
 }
 
 .svg-container {
-  position: relative;
+  display: flex;
+  margin-block: 0.5rem;
+  width: 100%;
+  /* border-bottom: 1px lightgray solid; */
+}
 
+.svg-container > svg {
+  margin-inline: auto;
 }
 
 .callbox {
-  position: absolute;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end; 
+  flex-direction: row;
   width: 100%;
-  height: 250px;
-  /* border: 1px solid blue; */
-  top: 0px;
-  left: 0px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.5s ease-in-out; 
 }
 
-.callbox-call {
-  position: relative;
-  width: 60%;
-  margin-inline: auto;
-  margin-block: 0.2rem;
-  /* border: 1px solid blue; */
-  background-color: orange;
-  padding: 0.5rem;
+.call {
+  background-color: white;
+  border: red solid 2px;
   border-radius: 5px;
-  /* animation: slideUp 500ms ease forwards 1; */
-  transition: opacity 0.5s ease-out;
-  opacity: 1;
-}
-
-.callbox-call:after {
-	content: '';
-	position: absolute;
-	left: 0;
-	top: 50%;
-	width: 0;
-	height: 0;
-	border: 40px solid transparent;
-	border-right-color: orange;
-	border-left: 0;
-	border-bottom: 0;
-	margin-top: -20px;
-	margin-left: -40px;
-}
-
-.callbox-call.hidden {
+  transition: all 0.5s ease-in-out;
   opacity: 0;
+  padding: 0.25rem;
+  transform: translateX(100vw);
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
+.call.show {
+  opacity: 1;
+  transform: translateX(0vw);
 }
+
+.call.hide {
+  opacity: 0;
+  transform: translateX(-100vw);
+}
+
 
 .arrow-btns {
   width: 100%;
-  height: 30%;
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
-  margin-block: 1rem;
+  margin-top: 0.5rem;
 }
 
 .arrow-btns > button {
-  width: 30%;
+  width: 100px;
+  height: 150px;
 }

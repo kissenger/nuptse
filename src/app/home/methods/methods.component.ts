@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output} from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core';
 import { MethodDescriptor, MethodDescriptorsArray, MethodsArray } from '@shared/types';
 import { METHODS_DB } from "@shared/methods.lib";
 import { FormsModule } from '@angular/forms';
@@ -17,6 +17,7 @@ import { Utility } from '@shared/classes/utilities.class';
 export class MethodsComponent {
 
   @Output() methodsArrayUpdated = new EventEmitter<MethodDescriptorsArray>();
+  @ViewChild('autofocus') _autofocusInputElement!: ElementRef<HTMLInputElement>;
 
   public selectedMethods: MethodDescriptorsArray = [];
   public filteredMethods: MethodDescriptorsArray = METHODS_DB;
@@ -25,6 +26,10 @@ export class MethodsComponent {
   constructor(
     public nav: NavService,
   ) {}
+
+  ngAfterViewInit () {
+    this._autofocusInputElement.nativeElement.focus({ preventScroll: true });
+  }
 
   public get methods() {
     const stage = !!this.selectedMethods[0] ? Utility.stageFromMethodName(this.selectedMethods[0]?.name) : '';
@@ -45,7 +50,7 @@ export class MethodsComponent {
     this.filteredMethods = [];
   }
 
-  updateSelectedMethods(m:MethodDescriptor,operation:'add'|'remove') {
+  updateSelectedMethods(m:MethodDescriptor, operation:'add'|'remove') {
     if (operation === 'add') this.selectedMethods.push(m);
     else this.selectedMethods = this.selectedMethods.filter(({name}) => name !== m.name)
     this.searchString = '';

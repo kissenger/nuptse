@@ -7,7 +7,7 @@
 
 /* Styling for the cells */
 .grid-cell {
-  padding: 10px;
+  padding: 5px;
   display: flex;
   align-items: center;
 }

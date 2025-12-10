@@ -1,3 +1,4 @@
+import { Bell } from "@shared/types";
 
 
 export class Utility {
@@ -7,22 +8,22 @@ export class Utility {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  static getRoundsArray(numberOfBells: number): Array<string> {
+  static getRoundsArray(numberOfBells: number): Array<Bell> {
     return Array.from({length: numberOfBells}, (v,i) => this.numbToChar(i+1));
   }
 
-  static charToNumb(char: string) {
+  static charToNumb(char: Bell): number {
     if (char === '0') return 10;
     if (char === 'E') return 11;
     if (char === 'T') return 12;
     return parseInt(char);
   }
 
-  static numbToChar(numb: number) {
+  static numbToChar(numb: number): Bell {
     if (numb === 10) return '0';
     if (numb === 11) return 'E';
     if (numb === 12) return 'T';
-    return numb.toString();
+    return <Bell>numb.toString();
   }
 
   static stageFromMethodName = (name: string) => {
