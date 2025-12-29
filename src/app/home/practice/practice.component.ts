@@ -1,17 +1,16 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnChanges, Renderer2, ViewChild} from '@angular/core';
 import { Coord, MethodDescriptorsArray, PracticeOptions, Rows } from '@shared/types';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, PercentPipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { CommonModule, PercentPipe, TitleCasePipe } from '@angular/common';
 import { Practice } from '@shared/classes/practice.class';
 import { NavService } from '@shared/services/nav.service';
-import { delay } from 'rxjs';
 
 @Component({
   selector: 'app-practice',
   imports: [FormsModule, CommonModule, PercentPipe],
   providers: [TitleCasePipe],
   templateUrl: './practice.component.html',
-  styleUrl: './practice.component.css',
+  styleUrls: ['./practice.component.css', '../home.component.css'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -32,7 +31,8 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
   public SVG_HEIGHT = 0;
   public SVG_WIDTH = 0;
   private _ROW_HEIGHT = 40;
-  private _COL_WIDTH = 30;
+  private _COL_WIDTH_NORMAL = 30;
+  private _COL_WIDTH_WIDE = 25;
   private _MAX_ROWS = 10;
   
   private _rows: Rows = []; 
@@ -42,6 +42,7 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
   private _timeSinceLastKeypress = 0;
   private _interval: any;
   private _callHandler: Array<{element: HTMLDivElement, age: number}> = [];
+  private _isFirstKeypress = true;
 
   public rowCount: number = 0;
   public errCount: number = 0;  
@@ -53,7 +54,6 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
     private _ref: ChangeDetectorRef,
     private _titleCasePipe: TitleCasePipe,
     public nav: NavService
-
   ) {}
 
   ngOnChanges() {
@@ -67,7 +67,14 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
     this._addRow();
     this._ref.detectChanges();
   }
+  
+  private get _COL_WIDTH() {
+    return this._practice.numberOfBells < 10 ? this._COL_WIDTH_NORMAL : this._COL_WIDTH_WIDE;
+  }
 
+  public get score() {
+    return Math.max(0,(this.rowCount-this.errCount)/this.rowCount);
+  }
   
   public handleKeyPress(receivedKeypress: string) {
 
@@ -75,13 +82,15 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
     if (receivedKeypress === expectedKeypress) {
       this._addRow();
       this.rowCount++;
+      this._isFirstKeypress = true;
     } else {
+      // only increment error once per row (but flash red each time incorrect btn is pressed)
       this._scorebox.nativeElement.animate(
         [{backgroundColor: 'red'},{backgroundColour: 'inherit'}],
         {duration: 250}
       )
-
-      this.errCount++;
+      if (this._isFirstKeypress) this.errCount++;
+      this._isFirstKeypress = false;
     }
 
     this._timeSinceLastKeypress = 0;

@@ -1,11 +1,11 @@
 
-
-<div class="subcontainer">
+<div class="page-container">
   <div class="generic-flex-grow-container">
+  <!-- <div class="generic-flex-grow-container" (click)="newOnClick($event)"> -->
 
     <form class="methods-form">    
       <label for="inputSearch">Select method(s) to add:</label><br>
-      <input #autofocus [(ngModel)]="searchString" autocomplete="off" (input)="applyFilter()" (focus)="onFocus()" (blur)="onBlur()" 
+      <input [(ngModel)]="searchString" autocomplete="off" (input)="applyFilter()" (focus)="onFocus()" (blur)="onBlur()"
         name="inputSearch" id="inputSearch" placeholder="Type to filter ...">
     </form>
 
@@ -17,6 +17,7 @@
         }
       </ul>
       <br>
+      
       Selected Methods:
       <ul class="list">
         @for (m of selectedMethods; track m) {
@@ -32,7 +33,6 @@
     <button class="nav-btns"  (click)="nav.scrollTo('home')">Back</button>  
     <button class="nav-btns" [disabled]="selectedMethods.length===0" (click)="nav.scrollTo('options')">Next</button>  
   </div>
+
 </div>
-
-
 

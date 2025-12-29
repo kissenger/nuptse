@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import { Component, EventEmitter, Input, Output} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { PracticeOptions } from '@shared/types';
@@ -9,34 +9,28 @@ import { Utility } from '@shared/classes/utilities.class';
   selector: 'app-options',
   imports: [FormsModule, CommonModule],
   templateUrl: './options.component.html',
-  styleUrl: './options.component.css',
+  styleUrls: ['./options.component.css', '../home.component.css'],
   standalone: true
 })
 
 export class OptionsComponent {
 
   @Output() options = new EventEmitter<PracticeOptions>();
-
-  @Input() 
-  get numberOfBells(): number|undefined { 
-    return this._numberOfBells
-  };
-  set numberOfBells(n: number|undefined) {
-    if (n) this._numberOfBells = n;
-    this.onUpdatedOptions();
-  };
-
   @Input() suppressBobsOption: boolean = false;
+  @Input() 
+  set numberOfBells(n: number|undefined) {
+    if (n) this.workingBellOptions = ['Random', ...Utility.getRoundsArray(n)];
+    this.onChangeEmit();
+  };
 
-  private _numberOfBells?: number;
   public practiceOptions = new PracticeOptions();
-  public workingBellOptions = ['Random', ...Utility.getRoundsArray(this._numberOfBells!)];
+  public workingBellOptions: Array<string | number> = [];
 
   constructor(
     public nav: NavService
   ) {}
   
-  public onUpdatedOptions() {
+  public onChangeEmit() {
     this.options.emit(this.practiceOptions);
   }
 

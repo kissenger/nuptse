@@ -29,8 +29,6 @@ export class Method {
     this._leadsPerCourse = this._numberOfBells -  this._huntBells.length;
     this._isPrinciple = this._huntBells.length === 0;
     this._noBobsFlag = method.flags?.includes('noBobs') ?? false;
-  console.log(this);
-
   }
 
 

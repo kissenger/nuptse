@@ -1,45 +1,62 @@
-/* Overflow needs to be set to auto to enable intersectionObserver to work with horizontal scrolling */
+:root {
+  --container-width: 350px;
+}
+
+/* Defines the height and width of the viewport */
 .root-container {
   width: 100vw;
   height: 100dvh;
-  overflow-x: hidden; 
+  overflow-x: hidden;  
+  scrollbar-width: none;          /* For Firefox */
+  -ms-overflow-style: none;       /* For Internet Explorer and legacy Edge */
 }
 
-/* These styles then remove the scroll bar */
+/* These styles remove the scroll bar */
 .root-container::-webkit-scrollbar { /* For WebKit browsers (Chrome, Safari, newer Edge) */
   display: none;
   width: 0; /* Ensures there is no empty space left by the scrollbar */
   height: 0;
 }
 
-.root-container { /* For Firefox */
-  scrollbar-width: none;
-}
-
-
-.root-container { /* For Internet Explorer and legacy Edge */
-  -ms-overflow-style: none;
-}
-
-.container {
+/* Defines the full width of the content, one grid element of viewport width for each 'page' */
+.grid-container {
   display: grid;  
-  grid-auto-flow: column;
-  grid-auto-columns: 100vw;
+  grid-template-columns: repeat(4, 100vw);
   height: 100%;
-  /* overflow-x: hidden;  
-  overflow-y: hidden;   */
 }
 
-
-.subcontainer {
+.grid-column {
   height: 100%;
-  width: 100vw;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.page-container {
+  height: 100vh;
+  width: var(--container-width);
   display: flex;  
   margin: 0rem;
-  padding: 1rem;
   box-sizing: border-box;
+  padding: 1rem;
   flex-direction: column;
   position: relative;
+}
+
+/* For desktop size screens, use background as a visual clue to mobile optimised nature */
+@media (min-width: 768px) {
+  .root-container {
+    background-color: lightgray;
+  }
+  .page-container {
+    background-color: white;
+    border-left: 1px solid grey;
+    border-right: 1px solid grey;
+  }
+}
+
+.centre-vertically {
+  justify-content: center;
 }
 
 .generic-flex-grow-container {
@@ -47,6 +64,7 @@
   flex-direction: column;
   flex-grow: 1;
   position: relative;
+  width: 100%;
 }
 
 .nav-btn-container {

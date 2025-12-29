@@ -1,9 +1,7 @@
-
-<div class="subcontainer">
+<div class="page-container">
   <div class="generic-flex-grow-container">
 
     <div class="practice-container">
-
       <div class="generic-flex-grow-container">
 
         <div class="stats">
@@ -12,8 +10,8 @@
             <div class="stat">{{rowCount}}</div>
           </div>
           <div #scorebox class="statsbox">
-            <div class="title">Score</div>
-            <div class="stat">{{(rowCount-errCount)/rowCount | percent: '1.1-1'}}</div>            
+            <div class="title">Accuracy</div>
+            <div class="stat">{{score | percent: '1.0-1'}}</div>            
           </div>
           <div class="statsbox">
             <div class="title">Timer</div>

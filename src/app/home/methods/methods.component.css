@@ -13,9 +13,6 @@ input {
   flex-grow: 1;
   overflow: scroll;
   white-space: nowrap;
-  /* border: 1px grey solid; */
-  /* overflow-y: scroll; */
-  /* border: 1px red solid; */
 }
 
 .list {
@@ -43,6 +40,10 @@ input {
   line-height: 1.5rem;
   background-color: whitesmoke;
 }
+
+/* .list > li:hover {
+  cursor: pointer;
+} */
 
 .list > li:nth-child(even) {
   background-color: gainsboro;

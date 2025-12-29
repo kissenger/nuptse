@@ -7,10 +7,11 @@ import { OptionsComponent } from "./options/options.component";
 import { MethodDescriptorsArray, PracticeOptions } from '@shared/types';
 import { NavService } from '@shared/services/nav.service';
 import { Utility } from '@shared/classes/utilities.class';
+import { ScreenService } from '@shared/services/screen.service';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, MethodsComponent, PracticeComponent, OptionsComponent],
+  imports: [CommonModule, MethodsComponent, OptionsComponent, PracticeComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
@@ -19,7 +20,7 @@ import { Utility } from '@shared/classes/utilities.class';
 export class HomeComponent {
 
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
-  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
+  @ViewChild('rootContainer') rootContainer!: ElementRef;
   
   public methods: MethodDescriptorsArray = [];
   public options: PracticeOptions = new PracticeOptions;
@@ -28,7 +29,6 @@ export class HomeComponent {
   public hideFwdBtn  = true;
   public disableFwdBtn = false;
   public showPracticeComponent = false;
-  public showMethodsComponent = false;
   public suppressBobsOption = false;
   public workingBell: string = '';
 
@@ -36,19 +36,22 @@ export class HomeComponent {
     public nav: NavService,
     private _scrollSpy: ScrollspyService,
     private _ref: ChangeDetectorRef,
+    private _screen: ScreenService
   ) {}
 
   ngAfterViewInit(): void {
     this.nav.setAnchors(this.anchors);
     this.nav.scrollTo('home');
-    this._scrollSpy.init(this.anchors, this.scrollContainer); 
+    this._scrollSpy.init(this.anchors, this.rootContainer); 
     this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
       if (isect.ratio > 0.2) {
         this.showPracticeComponent = isect.id === 'practice';
-        this.showMethodsComponent = isect.id !== 'home';        // hiding method component is the only way to get the input to focus when it is created
         this._ref.detectChanges();    // needed to fire ngClass, not sure why
       }
     })
+    this._screen.resize.subscribe( (width: number, height: number) => {
+      this.nav.scrollTo(this.nav.activeAnchor);
+    });
   }
 
   onMethodsChange(ms: MethodDescriptorsArray) {

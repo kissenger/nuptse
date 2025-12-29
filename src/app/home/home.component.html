@@ -1,33 +1,37 @@
 
 
-<div #scrollContainer class="root-container">
-  <div class="container">
-      
-    <div #anchor class="anchor subcontainer" id="home">
-      
-      <div class="generic-flex-grow-container">
-          Welcome to Practice Night!
-        <p>
-          Practice Night helps you practice touches and combinations of your favourite change ringing methods.
-      </div>
-      <div class="nav-btn-container"> 
-        <button class="nav-btns" (click)="nav.scrollTo('methods')">Start</button>  
-      </div>
+<div #rootContainer class="root-container">
 
+  <div class="grid-container">
+      
+    <!-- Home Page -->
+    <div #anchor class="grid-column" id="home">
+      <div class="page-container">
+        
+        <div class="generic-flex-grow-container centre-vertically">
+            Welcome to Practice Night!
+          <p>
+            Practice Night helps you practice touches and combinations of your favourite change ringing methods.
+        </div>
+        <div class="nav-btn-container"> 
+          <button class="nav-btns" (click)="nav.scrollTo('methods')">Start</button>  
+        </div>
+
+      </div>
     </div>
 
-    <div #anchor class="anchor" id="methods">
-      @if (showMethodsComponent) {
-        <app-methods (methodsArrayUpdated)="onMethodsChange($event)"></app-methods>
-      }
+    <!-- Methods Page -->
+    <div #anchor class="grid-column" id="methods">
+      <app-methods (methodsArrayUpdated)="onMethodsChange($event)"></app-methods>
     </div>
 
-
-    <div #anchor class="anchor" id="options">
+    <!-- Options Page -->
+    <div #anchor  class="grid-column" id="options">
       <app-options [numberOfBells]="numberOfBells" [suppressBobsOption]="suppressBobsOption" (options)="onOptionsChange($event)"></app-options>
     </div>
 
-    <div #anchor #practice class="anchor" id="practice">
+    <!-- Practice Page -->
+    <div #anchor  class="grid-column" id="practice">
       @if (showPracticeComponent) {
         <app-practice [methods]="methods" [options]="options"></app-practice>
       }

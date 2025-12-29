@@ -1,51 +1,59 @@
-<div class="subcontainer">
-  <div class="generic-flex-grow-container grid">
+<div class="page-container">
+  <div class="generic-flex-grow-container">
+    <div class="two-columns">
 
-      <div class="grid-cell grid-margin">
+      <div class="grid-header">
+        Practice options
+      </div>
+      <div class="grid-label">
         <label for="selectBell">Working bell:</label>
       </div>
-      <div class="grid-cell grid-margin">
-        <select #selectWorkingBell [(ngModel)]="practiceOptions.workingBell" (click)="onUpdatedOptions()" name="selectBell" id="selectBell">
+      <div class="grid-option">
+        <select #selectWorkingBell [(ngModel)]="practiceOptions.workingBell" (click)="onChangeEmit()" name="selectBell" id="selectBell">
           @for(wbOption of workingBellOptions; track wbOption) {
             <option value="{{wbOption}}">{{wbOption}}</option>
           }
         </select>
       </div>
-
-      <div class="grid-cell grid-margin">
+      <div class="grid-label">
         <label for="selectBobs">Bobs:</label>
       </div>
-      <div class="grid-cell grid-margin">
-        <input [disabled]="suppressBobsOption" type="checkbox" [(ngModel)]="practiceOptions.bobs" (change)="onUpdatedOptions()" name="selectBobs" id="selectBobs">
+      <div class="grid-option">
+        <input [disabled]="suppressBobsOption" type="checkbox" [(ngModel)]="practiceOptions.bobs" (change)="onChangeEmit()" name="selectBobs" id="selectBobs">
       </div>
 
-      <div class="grid-cell">
+      <div class="grid-label">
         <label for="selectSingles">Singles:</label>
       </div>
-      <div class="grid-cell">
-        <input type="checkbox" [(ngModel)]="practiceOptions.singles" (change)="onUpdatedOptions()" name="selectSingles" id="selectSingles">
+      <div class="grid-option">
+        <input type="checkbox" [(ngModel)]="practiceOptions.singles" (change)="onChangeEmit()" name="selectSingles" id="selectSingles">
       </div>
 
-      <div class="grid-cell">
-        <label for="showLeadend">Show Leadend:</label>
-      </div>
-      <div class="grid-cell">
-        <input type="checkbox" [(ngModel)]="practiceOptions.showLeadend" (change)="onUpdatedOptions()" name="showLeadend" id="showLeadend">
+      <div class="grid-header">
+        Display options
       </div>
 
-      <div class="grid-cell">
-        <label for="showHuntBells">Show Hunt Bells:</label>
+      <div class="grid-label">
+        <label for="showLeadend">Leadend:</label>
       </div>
-      <div class="grid-cell">
-        <input type="checkbox" [(ngModel)]="practiceOptions.showHuntBells" (change)="onUpdatedOptions()" name="showHuntBells" id="showHuntBells">
+      <div class="grid-option">
+        <input type="checkbox" [(ngModel)]="practiceOptions.showLeadend" (change)="onChangeEmit()" name="showLeadend" id="showLeadend">
       </div>
 
-      <div class="grid-cell">
-        <label for="showHuntBellsTrebleOnly">{{"   "}}Only Treble:</label>
+      <div class="grid-label">
+        <label for="showHuntBells">Hunt Bells:</label>
       </div>
-      <div class="grid-cell">
-        <input [disabled]="!practiceOptions.showHuntBells" type="checkbox" [(ngModel)]="practiceOptions.showHuntBellsTrebleOnly" (change)="onUpdatedOptions()" name="showHuntBellsTrebleOnly" id="showHuntBellsTrebleOnly">
+      <div class="grid-option">
+        <input type="checkbox" [(ngModel)]="practiceOptions.showHuntBells" (change)="onChangeEmit()" name="showHuntBells" id="showHuntBells">
+      </div>
+
+      <div class="grid-label">
+        <label for="showHuntBellsTrebleOnly">{{"   "}}Treble:</label>
+      </div>
+      <div class="grid-option">
+        <input [disabled]="!practiceOptions.showHuntBells" type="checkbox" [(ngModel)]="practiceOptions.showHuntBellsTrebleOnly" (change)="onChangeEmit()" name="showHuntBellsTrebleOnly" id="showHuntBellsTrebleOnly">
       </div>      
+    </div>
   </div>
 
   <div class="nav-btn-container"> 

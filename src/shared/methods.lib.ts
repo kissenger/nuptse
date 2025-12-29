@@ -32,6 +32,7 @@ export const METHODS_DB = [
   {name: 'Double Oxford Bob Major',        notation: 'x14x36x58x78,12', shortName: 'Double Oxford'},
   {name: 'Double Oxford Bob Caters',       notation: '3,1.5.1.7.3.9.5.9.7', shortName: 'Double Oxford'},
   {name: 'Double Oxford Bob Royal',        notation: 'x14x36x58x70x90,12', shortName: 'Double Oxford'},
+  {name: 'Gainsborough Surpise Major',     notation: 'x38x14x58x16x14x58x1236x78,12'},
 	{name: 'Glasgow Surprise Major',         notation: '36x56.14.58x58.36x14x38.16x16.38,18'},
 	{name: 'Grandsire Doubles',              notation: '3,1.5.1.5.1', bob: '3.1', single: '3.123'},
 	{name: 'Grandsire Triples',              notation: '3,1.7.1.7.1.7.1', bob: '3.1', single: '3.123'},
