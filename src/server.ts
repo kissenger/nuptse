@@ -8,6 +8,8 @@ import express from 'express';
 import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
+console.log(import.meta.dirname)
+console.log(browserDistFolder)
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
