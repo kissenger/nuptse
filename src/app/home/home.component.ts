@@ -1,6 +1,5 @@
 import { Component, ElementRef, ViewChildren, QueryList, ChangeDetectorRef, ViewEncapsulation, ViewChild, Renderer2, HostListener } from '@angular/core';
 import { ScrollspyService } from '../../shared/services/scrollspy.service';
-import { CommonModule } from '@angular/common';
 import { MethodsComponent } from './methods/methods.component';
 import { PracticeComponent } from "./practice/practice.component";
 import { OptionsComponent } from "./options/options.component";
@@ -8,10 +7,11 @@ import { MethodDescriptorsArray, PracticeOptions } from '@shared/types';
 import { NavService } from '@shared/services/nav.service';
 import { Utility } from '@shared/classes/utilities.class';
 import { ScreenService } from '@shared/services/screen.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, MethodsComponent, OptionsComponent, PracticeComponent],
+  imports: [MethodsComponent, OptionsComponent, PracticeComponent, CommonModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
