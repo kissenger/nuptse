@@ -30,7 +30,7 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
 
   public SVG_HEIGHT = 0;
   public SVG_WIDTH = 0;
-  private _ROW_HEIGHT = 40;
+  private _ROW_HEIGHT = 35;
   private _COL_WIDTH_NORMAL = 30;
   private _COL_WIDTH_WIDE = 25;
   private _MAX_ROWS = 10;
