@@ -19,7 +19,8 @@ export type Row = {
   sequence: Sequence, 
   call?: MethodCall | TouchCall, 
   isLeadend?: boolean,
-  isLeadhead?: boolean};
+  isLeadhead?: boolean,
+  isLastRow?: boolean};
 export type Rows = Array<Row>;
 export type Calls = Map<number, MethodCall | TouchCall>;
 export type PlacebellArray = Array<Array<number>>

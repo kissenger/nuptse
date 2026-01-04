@@ -28,13 +28,13 @@ export class Practice {
     this._roundsArray = Utility.getRoundsArray(this.numberOfBells);
     this._leadHead = this._roundsArray;
     this._leadsPerCourse = this._methods[0].leadsPerCourse;
-    this._rows = this._getLead(this._roundsArray, true);
+    this._rows = this._getLead(this._roundsArray);
   }
 
   // Small functions
-  public get isLeadHead()          { return this._rowNumber === this._currentMethod.leadLength }
-  public get isLeadEnd()           { return this._rowNumber === this._currentMethod.leadLength - 1; }
-  public get numberOfBells ()      { return this._numberOfBells; }
+  // public get isLeadHead()          { return this._rowNumber === this._currentMethod.leadLength }
+  // public get isLeadEnd()           { return this._rowNumber === this._currentMethod.leadLength - 1; }
+  public get numberOfBells()       { return this._numberOfBells; }
   public get workingBell()         { return this._workingBell; }
   public get huntBells()           { return this._currentMethod.huntBells};
   public get roundsArray()         { return this._roundsArray };
@@ -51,7 +51,7 @@ export class Practice {
   /*
   * Get all the Rows in the next leadend, complete with calls and specific flags 
   */
-  private _getLead(leadHead: Sequence, isFirstLead?: boolean): Rows {
+  private _getLead(leadHead: Sequence): Rows {
 
     // determine calls for this lead and calculate rows
     const CALL_OFFSET  = -3;   
@@ -64,18 +64,19 @@ export class Practice {
 
     // put touch calls and flags on the Rows
     calls.forEach( (call, rowNumber) => rows[rowNumber + CALL_OFFSET < 0 ? 0 : rowNumber + CALL_OFFSET].call = call );
-    rows[rows.length - 1].isLeadend = true;
-    rows[0].isLeadhead = true;
+    rows[rows.length - 2].isLeadend = true;
+    rows[rows.length - 1].isLastRow = true 
+    rows[0].isLeadhead = this._rowNumber !== -1;  // this sets isLeadhead to true only if its not the first loop
 
     // manage change of method
     if (this._currentMethod.isPrinciple && this._isTrebleLeadingAtLeadend(rows)) {
-      this._nextMethod = this._getRandomMethod;    // force method change
+      this._nextMethod = this._getRandomMethod;    // force method change`
     } else if (!this._currentMethod.isPrinciple) {
       this._nextMethod = this._getNextMethod;      // change that method will remain unchanged
     }
     
     // update rows with method calls
-    if (isFirstLead) rows[0].call = `GO ${this._currentMethod.shortName}`;
+    if (this._rowNumber < 0) rows[0].call = `GO ${this._currentMethod.shortName}`; // unique call for first row
     if (this._nextMethod) {
       const methodCallRow = this._currentMethod.touchEffectRows.slice(-1)[0] + CALL_OFFSET + 1;
       rows[methodCallRow].call = this._nextMethod.shortName;
@@ -90,7 +91,7 @@ export class Practice {
   public step(): Row {
 
     this._rowNumber++;
-    if (this.isLeadHead) {   // not triggered for first row of practice session
+    if (this._rows[this._rowNumber].isLastRow) {   // not triggered for first row of practice session
       this._rowNumber = 0;
       if (this._nextMethod) this._currentMethod = this._nextMethod;
       this._leadHead = this._rows[this._rows.length - 1].sequence;
