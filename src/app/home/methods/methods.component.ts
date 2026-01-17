@@ -2,13 +2,13 @@ import { Component, EventEmitter, Output} from '@angular/core';
 import { MethodDescriptor, MethodDescriptorsArray } from '@shared/types';
 import { METHODS_DB } from "@shared/methods.lib";
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { NavService } from '@shared/services/nav.service';
 import { Utility } from '@shared/classes/utilities.class';
 
 @Component({
   selector: 'app-methods',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule],
   templateUrl: './methods.component.html',
   styleUrls: ['./methods.component.css', '../home.component.css'],
   standalone: true

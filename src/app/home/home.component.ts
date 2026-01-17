@@ -7,11 +7,11 @@ import { MethodDescriptorsArray, PracticeOptions } from '@shared/types';
 import { NavService } from '@shared/services/nav.service';
 import { Utility } from '@shared/classes/utilities.class';
 import { ScreenService } from '@shared/services/screen.service';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-home',
-  imports: [MethodsComponent, OptionsComponent, PracticeComponent, CommonModule],
+  imports: [MethodsComponent, OptionsComponent, PracticeComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None

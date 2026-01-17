@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Input, Output} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { PracticeOptions } from '@shared/types';
 import { NavService } from '@shared/services/nav.service';
 import { Utility } from '@shared/classes/utilities.class';
 
 @Component({
   selector: 'app-options',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule],
   templateUrl: './options.component.html',
   styleUrls: ['./options.component.css', '../home.component.css'],
   standalone: true
