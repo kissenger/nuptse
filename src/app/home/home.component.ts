@@ -39,6 +39,11 @@ export class HomeComponent {
     private _screen: ScreenService
   ) {}
 
+  testscroll(target: string) {
+    console.log(target);
+    this.nav.scrollTo(target);
+  }
+
   ngAfterViewInit(): void {
     this.nav.setAnchors(this.anchors);
     this.nav.scrollTo('home');
