@@ -1,10 +1,8 @@
 import { Component, EventEmitter, Output} from '@angular/core';
 import { MethodDescriptor, MethodDescriptorsArray } from '@shared/types';
-import { METHODS_DB } from "@shared/methods.lib";
 import { FormsModule } from '@angular/forms';
-
 import { NavService } from '@shared/services/nav.service';
-import { Utility } from '@shared/classes/utilities.class';
+import { MethodList } from '@shared/classes/methodList.class';
 
 @Component({
   selector: 'app-methods',
@@ -16,26 +14,22 @@ import { Utility } from '@shared/classes/utilities.class';
 
 export class MethodsComponent {
 
-  @Output() methodsArrayUpdated = new EventEmitter<MethodDescriptorsArray>();
-  // @ViewChild('autofocus') _autofocusInputElement!: ElementRef<HTMLInputElement>;
+  @Output() methodsArrayUpdated = new EventEmitter<MethodList>();
 
-  public selectedMethods: MethodDescriptorsArray = [];
-  public filteredMethods: MethodDescriptorsArray = METHODS_DB;
+  public selectedMethods: MethodList = new MethodList();
+  public filteredMethods: MethodList = new MethodList();
   public searchString: string = '';
 
   constructor(
     public nav: NavService,
-  ) {}
-
-  public get methods() {
-    const stage = !!this.selectedMethods[0] ? Utility.stageFromMethodName(this.selectedMethods[0]?.name) : '';
-    return METHODS_DB.filter( (m: MethodDescriptor) => m.name.toLowerCase().indexOf(stage ?? '')>=0);
+  ) {
   }
 
   public applyFilter() {
-    this.filteredMethods = this.methods
-      .filter( (m:MethodDescriptor) => m.name.toLowerCase().indexOf(this.searchString.toLowerCase())>=0)
-      .filter( (m:MethodDescriptor) => !this.selectedMethods.find( ({name}) => name === m.name));
+    this.filteredMethods.unfilter();
+    if (this.selectedMethods.stage) this.filteredMethods.filterByStage(this.selectedMethods.stage);
+    this.filteredMethods.filterBySearchString(this.searchString);
+    this.filteredMethods.filterOutSelectedMethods(this.selectedMethods);
   } 
 
   onFocus() {
@@ -43,15 +37,26 @@ export class MethodsComponent {
   }
 
   onBlur() {
-    this.filteredMethods = [];
+    this.filteredMethods.clear();
   }
 
-  updateSelectedMethods(m:MethodDescriptor, operation:'add'|'remove') {
-    if (operation === 'add') this.selectedMethods.push(m);
-    else this.selectedMethods = this.selectedMethods.filter(({name}) => name !== m.name)
+  updateSelectedMethods(mn: string, operation: 'add'|'remove') {
+    if (operation === 'add') {
+      this.selectedMethods.add(mn);
+    } else {
+      this.selectedMethods.remove(mn);
+    }
+
+    console.log(this.selectedMethods)
+
     this.searchString = '';
     this.methodsArrayUpdated.emit(this.selectedMethods);
-    this.filteredMethods = this.selectedMethods.length === 0 ? METHODS_DB : [];
+
+    if (this.selectedMethods.isEmpty) {
+      this.filteredMethods.unfilter();
+    } else {
+      this.filteredMethods.clear();
+    }
   }
 
 }

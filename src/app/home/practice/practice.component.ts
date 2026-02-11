@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule, PercentPipe, TitleCasePipe } from '@angular/common';
 import { Practice } from '@shared/classes/practice.class';
 import { NavService } from '@shared/services/nav.service';
+import { MethodList } from '@shared/classes/methodList.class';
 
 @Component({
   selector: 'app-practice',
@@ -20,7 +21,7 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
   @ViewChild('svg') _svgElement!: ElementRef<SVGElement>;
   @ViewChild('callbox') _callbox!: ElementRef<HTMLElement>;
   @ViewChild('scorebox') _scorebox!: ElementRef<HTMLElement>;
-  @Input() methods: MethodDescriptorsArray = [];
+  @Input() methods = new MethodList;
   @Input() options = new PracticeOptions;
   @HostListener('document:keydown', ['$event']) 
   onKeydown(event: KeyboardEvent) {
@@ -86,7 +87,7 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
     } else {
       // only increment error once per row (but flash red each time incorrect btn is pressed)
       this._scorebox.nativeElement.animate(
-        [{backgroundColor: 'red'},{backgroundColour: 'inherit'}],
+        [{backgroundColor: '#800000'},{backgroundColour: 'inherit'}],
         {duration: 250}
       )
       if (this._isFirstKeypress) this.errCount++;
@@ -162,12 +163,12 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
     if (this._rows.length > 1) {
       this._practice.roundsArray.forEach( bell => {
         let colour = null;
-        if (this._practice.isWorkingBell(bell)) colour = 'blue';
+        if (this._practice.isWorkingBell(bell)) colour = '#000080';
         else if (this.options.showHuntBells) {
           if (!this.options.showHuntBellsTrebleOnly) {
-            if (this._practice.isBellInTheHunt(bell)) colour = 'red';
+            if (this._practice.isBellInTheHunt(bell)) colour = '#800000';
           } else {
-            if (bell === '1' && this._practice.isBellInTheHunt('1')) colour = 'red';
+            if (bell === '1' && this._practice.isBellInTheHunt('1')) colour = '#800000';
           }
         }
         
@@ -256,7 +257,7 @@ export class PracticeComponent implements OnChanges, AfterViewInit{
     circle.setAttribute('cx', pos.x.toString());
     circle.setAttribute('cy', pos.y.toString());
     circle.setAttribute('r', r.toString());
-    circle.setAttribute('stroke', 'blue');
+    circle.setAttribute('stroke', '#000080');
     circle.setAttribute('stroke-width', '2');
     circle.setAttribute('fill', 'none');
     this._svgElement.nativeElement.appendChild(circle);

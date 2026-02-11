@@ -1,17 +1,18 @@
-import { Component, ElementRef, ViewChildren, QueryList, ChangeDetectorRef, ViewEncapsulation, ViewChild, Renderer2, HostListener } from '@angular/core';
-import { ScrollspyService } from '../../shared/services/scrollspy.service';
+import { Component, ElementRef, ViewChildren, QueryList, ChangeDetectorRef, ViewEncapsulation, ViewChild } from '@angular/core';
 import { MethodsComponent } from './methods/methods.component';
 import { PracticeComponent } from "./practice/practice.component";
 import { OptionsComponent } from "./options/options.component";
-import { MethodDescriptorsArray, PracticeOptions } from '@shared/types';
-import { NavService } from '@shared/services/nav.service';
-import { Utility } from '@shared/classes/utilities.class';
+import { PracticeOptions } from '@shared/types';
+import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { ScreenService } from '@shared/services/screen.service';
-
+import { NavService } from '@shared/services/nav.service';
+import { MethodList } from '@shared/classes/methodList.class';
+import { SplashComponent } from "@shared/components/splash/splash.component";
+import { HelpComponent } from "./helpMenu/help.component";
 
 @Component({
   selector: 'app-home',
-  imports: [MethodsComponent, OptionsComponent, PracticeComponent],
+  imports: [MethodsComponent, OptionsComponent, PracticeComponent, SplashComponent, HelpComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
@@ -22,7 +23,7 @@ export class HomeComponent {
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
   @ViewChild('rootContainer') rootContainer!: ElementRef;
   
-  public methods: MethodDescriptorsArray = [];
+  public methods: MethodList = new MethodList();
   public options: PracticeOptions = new PracticeOptions;
   public numberOfBells?: number;
   public hideBackBtn = true;
@@ -31,6 +32,7 @@ export class HomeComponent {
   public showPracticeComponent = false;
   public suppressBobsOption = false;
   public workingBell: string = '';
+  public showHelpMenu: boolean = false;
 
   constructor(
     public nav: NavService,
@@ -38,11 +40,6 @@ export class HomeComponent {
     private _ref: ChangeDetectorRef,
     private _screen: ScreenService
   ) {}
-
-  testscroll(target: string) {
-    console.log(target);
-    this.nav.scrollTo(target);
-  }
 
   ngAfterViewInit(): void {
     this.nav.setAnchors(this.anchors);
@@ -59,16 +56,21 @@ export class HomeComponent {
     });
   }
 
-  onMethodsChange(ms: MethodDescriptorsArray) {
+  onMethodsChange(ms: MethodList) {
     this.methods = ms;
-    if (ms.length > 0) {
-      this.numberOfBells = Utility.nBells(ms[0].name);
+    if (this.methods.nBells) {
+      this.numberOfBells = this.methods.nBells;
     }
-    this.suppressBobsOption = this.methods.every( (m) => m.flags?.includes('noBobs'));
+    this.suppressBobsOption = this.methods.allMethodsHaveNoBobsFlag;
   }
 
   onOptionsChange(o: PracticeOptions) {
     this.options = o;
+  }
+
+  onShowHelp() {
+    this.showHelpMenu = true;
+    console.log(this.showHelpMenu)
   }
 
 

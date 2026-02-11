@@ -1,8 +1,11 @@
 import { Bell } from "@shared/types";
-
+import { METHODS_DB } from "@shared/methods.lib";
 
 export class Utility {
 
+  static getMethodDescriptorFromName(name: string) {
+    return METHODS_DB.find( m => m.name === name);
+  } 
 
   static randomInteger(min:number, max:number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -30,7 +33,7 @@ export class Utility {
     return name.split(' ').at(-1)?.toLowerCase();
   }
 
-  static nBells = (name: string): number => {
+  static nBellsFromMethodName = (name: string): number => {
     const stage = this.stageFromMethodName(name);
     switch (stage?.toLowerCase()) {  
       case 'maximus': return 12;

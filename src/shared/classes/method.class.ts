@@ -1,8 +1,9 @@
 
-import { Bell, MethodCall, MethodDescriptor, PlacebellArray, PlaceNotation, Rows, Sequence, TouchCall } from "../types";
+import { Bell, Calls, MethodCall, MethodDescriptor, PlacebellArray, PlaceNotation, Rows, Sequence, TouchCall } from "../types";
 import { Utility } from '@shared/classes/utilities.class';
 
 export class Method {
+
   private _method: MethodDescriptor;
   private _numberOfBells: number;
   private _leadsPerCourse: number;
@@ -11,19 +12,19 @@ export class Method {
   private _huntBells: Array<Bell>;
   private _touchEffectRows: Array<number>;
   private _plain: PlacebellArray;
-  private _calls: {bob: PlacebellArray, single: PlacebellArray};
+  private _callNotations: {bob: PlacebellArray, single: PlacebellArray};
   private _shortName: string;
   private _isPrinciple: boolean;
   private _noBobsFlag: boolean;
-
+  
   constructor(method: MethodDescriptor) {
     this._method = method;
     this._shortName = method.shortName ?? this.name.split(' ')[0];
-    this._numberOfBells = Utility.nBells(method.name);
+    this._numberOfBells = Utility.nBellsFromMethodName(method.name);
     this._plain = this._method.notation.split(',').flatMap(pn => this._unpackPlaceNotation(pn));
     this._touchEffectRows = this._method.touchEffectRows ?? [this._plain.findLastIndex( r => r.length > 1 || r[0] !== 1 )]
-    this._calls = this._getCalls();
-    this._firstLead = this.getLead(this._plain);
+    this._callNotations = this._getCallNotations();
+    this._firstLead = this.getLead([], Utility.getRoundsArray(this._numberOfBells));
     this._leadHead = this._firstLead[this._firstLead.length - 1].sequence;
     this._huntBells = this._getHuntBells(this._leadHead);
     this._leadsPerCourse = this._numberOfBells -  this._huntBells.length;
@@ -48,13 +49,17 @@ export class Method {
 
   /*
    * Returns a placebell array for the lead end, with the requested calls implemented at the calling positions
+   * ARGUMENTS
+   *    touchCalls: Map<number, TouchCall | MethodCall> - A map containing row number and associated desired call
+   * RETURNS
+   *    PlaceBellArray: Array<Array<number>> - a placebell array with the requested calls implemented
    */
-  public getPlaceBells(touchCalls: Map<number, TouchCall | MethodCall>): PlacebellArray {
+  public getPlaceBellsFromTouchCalls(touchCalls: Calls): PlacebellArray {
     
     const pb = [...this._plain];
-    touchCalls.forEach( (call, row) => {
-      if (call === 'bob' || call === 'single') {
-        pb.splice(row, this._calls[call].length, ...this._calls[call]);
+    touchCalls.forEach( c => {
+      if (c.call === 'bob' || c.call === 'single') {
+        pb.splice(c.effectRow!, this._callNotations[c.call].length, ...this._callNotations[c.call]);
       }
     });
     
@@ -81,18 +86,40 @@ export class Method {
     return leadHead.filter( (cv,i) => parseInt(cv) == i + 1);
   }
 
-  /*
+  // const placeBells: PlacebellArray = this._currentMethod.getPlaceBells(calls);
+
+
+  /* 
+   * ===========================================================================================================
    * Returns an array of changes given a placebell array and a starting row (leadhead)
+   * ARGUMENTS
+   *    calls: Map<number, TouchCall | MethodCall> - A map containing row number and associated desired call
+   *    leadHead: Array<Bell> - An array defining the order of bells at the lead head
+   * RETURNS
+   *    rows: Array<Row> - An array containing all rows in the leadened with calls implemented
+   * ===========================================================================================================
    */
-  public getLead(placebellArray: PlacebellArray, leadHead?: Sequence): Rows {
+  public getLead(calls: Calls, leadHead: Sequence): Rows {
 
-    let rows: Rows = [{sequence: leadHead ?? Utility.getRoundsArray(this._numberOfBells)}];
-    placebellArray.forEach( pb => {
-      const startRow: Sequence = rows[rows.length-1].sequence;
-      rows.push({sequence: this.transformRow(startRow, pb)});
+    let placeBells: PlacebellArray = this.getPlaceBellsFromTouchCalls(calls);
+    const rows: Rows = [{sequence: leadHead, isLeadhead: false, isLeadend: false}];
+
+    placeBells.forEach( (pb, rowNumber) => {
+      rows.push({
+        sequence: this.transformRow(rows.slice(-1)[0].sequence, pb),
+        isLeadhead: rowNumber === 0, 
+        isLeadend: rowNumber === placeBells.length - 2, // note that this.leadLength is not available at this time
+      });
     })
-
     return rows;
+  }
+
+  public addCallsToLead(calls: Calls, rowsToUpdate: Rows) {
+    console.log(calls)
+    calls.forEach( c => {
+      rowsToUpdate[c.callRow].call = c.call
+    }) 
+    return rowsToUpdate;
   }
 
   /*
@@ -134,7 +161,7 @@ export class Method {
   *    bob - change notation for a bob at this change
   *    single - change nottation for a single at this change
   */
-  private _getCalls(): {bob: PlacebellArray, single: PlacebellArray} {
+  private _getCallNotations(): {bob: PlacebellArray, single: PlacebellArray} {
 
     let bob:    PlacebellArray = [];
     let single: PlacebellArray = [];

@@ -1,6 +1,6 @@
-import { Call } from "@angular/compiler";
 import { MethodsArray, MethodDescriptorsArray, PracticeOptions, PlacebellArray, Row, Calls, Bell, Rows, Sequence, TouchCall } from "../types";
 import { Method } from "./method.class";
+import { MethodList } from "./methodList.class";
 import { Utility } from "./utilities.class";
 
 export class Practice {
@@ -17,9 +17,10 @@ export class Practice {
   private _rows: Rows;
   private _roundsArray: Sequence;
   private _leadHead: Sequence;
+  private _CALL_OFFSET  = -3; 
   
-  constructor(methods: MethodDescriptorsArray, options: PracticeOptions) {
-    this._methods = methods.map(m=>new Method(m));
+  constructor(methodsList: MethodList, options: PracticeOptions) {
+    this._methods = methodsList.list.map(m=>new Method(m));
     this._currentMethod = this._methods[0];
     this._options = options;
     this._rowNumber = -1;     // row number in lead (resets to 0 at each lead end)
@@ -31,9 +32,9 @@ export class Practice {
     this._rows = this._getLead(this._roundsArray);
   }
 
-  // Small functions
-  // public get isLeadHead()          { return this._rowNumber === this._currentMethod.leadLength }
-  // public get isLeadEnd()           { return this._rowNumber === this._currentMethod.leadLength - 1; }
+  /*
+  * Small functions
+  */
   public get numberOfBells()       { return this._numberOfBells; }
   public get workingBell()         { return this._workingBell; }
   public get huntBells()           { return this._currentMethod.huntBells};
@@ -49,39 +50,54 @@ export class Practice {
   public isWorkingBell(bell: Bell): boolean   { return this._workingBell === bell };
 
   /*
-  * Get all the Rows in the next leadend, complete with calls and specific flags 
+  * Get all the rows in the next leadend, complete with calls and flags 
   */
   private _getLead(leadHead: Sequence): Rows {
 
-    // determine calls for this lead and calculate rows
-    const CALL_OFFSET  = -3;   
+    // Determine calls for this lead - touchcalls first, then method calls
+    // Need to know what the touch call is first, as for a principal we only change
+    // the method when the treble is leading at the LE, so first we 
+    // (1) Find the touch calls that apply for this leadend
+    // (2) Get the leadend with the touch calls applied
+    // (3) Determine whether a change of method is needed
+    //     (a) If method is a principle, only change method if the treble is leading at the next leadend
+    //     (b) Otherwise, change the method based on rolling the dice
+    // (4) Once all calls are known, add then to the rows array and return
 
-    // get this leadend with only touchcalls implemented, as we need to know the leadend in order
-    // to determine if a method change is required (only applicable if its a principle)
-    const calls: Calls = new Map(this._currentMethod.touchEffectRows.map( r => [r, this._getCall(this._options)]));
-    const placeBells: PlacebellArray = this._currentMethod.getPlaceBells(calls);
-    const rows: Rows = this._currentMethod.getLead(placeBells, leadHead);
+    // First get touch calls for this lead
+    const calls: Calls = this._currentMethod.touchEffectRows.map( r => 
+      ({effectRow: r, callRow: Math.max(0, r + this._CALL_OFFSET), call: this._getTouchCall(this._options)})
+    );
 
-    // put touch calls and flags on the Rows
-    calls.forEach( (call, rowNumber) => rows[rowNumber + CALL_OFFSET < 0 ? 0 : rowNumber + CALL_OFFSET].call = call );
-    rows[rows.length - 2].isLeadend = true;
-    rows[rows.length - 1].isLastRow = true 
-    rows[0].isLeadhead = this._rowNumber !== -1;  // this sets isLeadhead to true only if its not the first loop
+    // Once the relevant touch calls are established, get the full lead
+    let rows: Rows = this._currentMethod.getLead(calls, leadHead);
 
-    // manage change of method
-    if (this._currentMethod.isPrinciple && this._isTrebleLeadingAtLeadend(rows)) {
-      this._nextMethod = this._getRandomMethod;    // force method change`
-    } else if (!this._currentMethod.isPrinciple) {
-      this._nextMethod = this._getNextMethod;      // change that method will remain unchanged
+    // Now check for method type and apply logic to change method
+    this._nextMethod = null;
+    if (this._currentMethod.isPrinciple) {
+      if (this._isTrebleLeadingAtLeadend(rows)) {    // nested if to avoid running function when not a principle
+        this._nextMethod = this._getNextMethod();    
+      }
+    } else {
+      if (this._shouldMethodChange()) {
+        this._nextMethod = this._getNextMethod();
+      }
     }
     
-    // update rows with method calls
-    if (this._rowNumber < 0) rows[0].call = `GO ${this._currentMethod.shortName}`; // unique call for first row
+    // If method has changed, update row to include method call
     if (this._nextMethod) {
-      const methodCallRow = this._currentMethod.touchEffectRows.slice(-1)[0] + CALL_OFFSET + 1;
-      rows[methodCallRow].call = this._nextMethod.shortName;
+      const methodCallRow = this._currentMethod.touchEffectRows.slice(-1)[0];  // last call row if multiple eg stedman
+      calls.push({callRow: methodCallRow, call: this._nextMethod.shortName});
+    }
+  
+    // If this is the first leadend, call the starting method
+    if (this._rowNumber < 0) {
+      calls.push({callRow: 0, call: `GO ${this._currentMethod.shortName}`});
     }
 
+    // put the calls on the rows and return
+    rows = this._currentMethod.addCallsToLead(calls, rows);
+    console.log(rows)
     return rows;
   }
 
@@ -91,7 +107,7 @@ export class Practice {
   public step(): Row {
 
     this._rowNumber++;
-    if (this._rows[this._rowNumber].isLastRow) {   // not triggered for first row of practice session
+    if (this._rowNumber === this._rows.length - 1) {   // not triggered for first row of practice session
       this._rowNumber = 0;
       if (this._nextMethod) this._currentMethod = this._nextMethod;
       this._leadHead = this._rows[this._rows.length - 1].sequence;
@@ -105,7 +121,7 @@ export class Practice {
   /*
   *  Randomly generate null, bob or single
   */
-  private _getCall(options: PracticeOptions): TouchCall {
+  private _getTouchCall(options: PracticeOptions): TouchCall {
 
     // increase the likelyhood of a call with each passing plain lead, 
     // unless its the hunt bell in which case make a call
@@ -125,47 +141,51 @@ export class Practice {
       }
     }
 
-    this._plainCounter = call ? 0 : this._plainCounter + 1;
     return call;
   }
 
-  private get _linearChance(): Boolean {
-    const rand = Utility.randomInteger(0,80);
-    const thresh = 100 / this._leadsPerCourse * (this._plainCounter + 1);
-    console.log(`Touch Call: Rolled ${rand}, threshold is ${thresh}`)
-    return rand < thresh;
-  }
-
-  private _isTrebleLeadingAtLeadend(rows:Rows): Boolean {
+  /*
+  *  Returns true if the treble is leading at the end of the current lead
+  */
+  private _isTrebleLeadingAtLeadend(rows: Rows): Boolean {
     return rows[rows.length - 1].sequence[0] === '1';
   }
 
-
   /*
-  *  Randomly change the method in two steps
-  *  1) role the dice to determine whether the method should change
-  *  2) role the dice to determine which method to change to 
-  *  This ensures that you dont necessarily change methods every lead, and get a few leads 
+  *  Increasing chance of returning true with each passing leadend (threshold reduces with each lead)
+  *  Resets after a true is returned
   */
-  private get _getNextMethod(): Method | null {
-
-    if (this._methods.length > 1) {
-      const random = Utility.randomInteger(1,10);
-      const thresh = 6;
-      console.log(`Method change - rolled a ${random}, threshold is ${thresh}`);
-      if (random > thresh) {
-        return this._getRandomMethod;
-      }
-    }
-    return null;
+  private get _linearChance(): Boolean {
+    const MULTIPLIER = 1.3;
+    const threshold = Math.floor(this._leadsPerCourse - MULTIPLIER * this._plainCounter++);
+    const result = this._staticChance(threshold);
+    if (result) this._plainCounter = 0;
+    return result;
   }
 
   /*
-  *  Select at random another method in the list
+  *  Returns true if D10 roll is greater than supplied threshold
   */
-  private get _getRandomMethod() {
-    const arr = this._methods!.filter(m => m.name !== this._currentMethod!.name);
-    const newMethod = arr[Utility.randomInteger(0, arr.length-1)];
+  private _staticChance(threshold: number): boolean {
+    const result = Utility.randomInteger(1,10);
+    // console.log(`Rolled: ${result}, Threshold: ${threshold}, Result: ${result > threshold} `)
+    return result > threshold;
+  }
+
+  /*
+  *  Returns true if the current method should change based on dice roll
+  */
+  private _shouldMethodChange() {
+    return this._methods.length > 1 && this._staticChance(6);
+  }
+
+  /*
+  *  Select at random another method in the list, ensuring that the current method is not included
+  *  Returns null if method should not be changed
+  */
+  private _getNextMethod() {
+    const filteredMethods = this._methods!.filter(m => m.name !== this._currentMethod!.name);
+    const newMethod = filteredMethods[Utility.randomInteger(0, filteredMethods.length-1)];
     return newMethod;
   }
 

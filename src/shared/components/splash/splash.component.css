@@ -1,0 +1,31 @@
+.splash {
+  width: 100%;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 40px;
+  justify-content: space-between; 
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr); 
+  height: 35px;
+}
+
+.grey {
+  color: var(--colour-grey);
+}
+
+.red {
+  color: var(--colour-red);
+}
+
+.blue {
+  color: var(--colour-blue);
+}
+
+.bold {
+  font-weight: 900;
+}
+.unbold {
+  font-weight: 200;
+}

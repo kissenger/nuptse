@@ -1,0 +1,13 @@
+<div class="splash">
+  @for (row of splash; track row) {
+    <div class="row">
+      @for (part of row; track part.text) {
+        @for (char of [...part.text]; track $index) {
+          <span [class]="[part.style.colour, part.style.weight]">{{char}}</span>
+        }
+      }
+    </div>
+  }
+</div>
+
+

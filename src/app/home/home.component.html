@@ -1,16 +1,23 @@
 
-
 <div #rootContainer class="root-container">
 
+
   <div class="grid-container">
+
       
     <!-- Home Page -->
     <div #anchor class="grid-column" id="home">
+
       <div class="page-container">
         
+        <app-help [(showHelpMenu)]="showHelpMenu"></app-help>
+
+        <div class="help-button open" (click)="onShowHelp()">?</div>
+        
         <div class="generic-flex-grow-container centre-vertically">
-            <img src="assets/pnlogo.png" alt="Practice Night: A Bell Ringing Simulator logo">
+          <app-splash-screen></app-splash-screen>
         </div>
+
         <div class="nav-btn-container"> 
           <button class="nav-btns" (click)="nav.scrollTo('methods')">Start</button>  
         </div>
@@ -18,24 +25,23 @@
       </div>
     </div>
 
-    <!-- Methods Page -->
     <div #anchor class="grid-column" id="methods">
       <app-methods (methodsArrayUpdated)="onMethodsChange($event)"></app-methods>
     </div>
 
     <!-- Options Page -->
-    <div #anchor  class="grid-column" id="options">
+    <div #anchor class="grid-column" id="options">
       <app-options [numberOfBells]="numberOfBells" [suppressBobsOption]="suppressBobsOption" (options)="onOptionsChange($event)"></app-options>
     </div>
 
     <!-- Practice Page -->
-    <div #anchor  class="grid-column" id="practice">
+    <div #anchor class="grid-column" id="practice">
       @if (showPracticeComponent) {
         <app-practice [methods]="methods" [options]="options"></app-practice>
       }
     </div>
-
   </div>
+
 </div>
 
 

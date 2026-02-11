@@ -1,0 +1,35 @@
+
+.help {
+  position: absolute;
+  z-index: 500;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  max-height: 0px;
+  transition: max-height 0.3s;
+  background-color: var(--colour-blue);
+  color: white;
+  /* font-size: 22px; */
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.help-padding {
+  padding-inline: 0.5rem;
+  padding-block: 1rem;
+  box-sizing: border-box;
+}
+
+
+.help.show {
+  max-height: 100dvh;
+  height: 100dvh;
+}
+
+
+a:link{
+  color: white;
+}
+a:visited {
+  color: white;
+}

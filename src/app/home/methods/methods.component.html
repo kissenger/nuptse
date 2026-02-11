@@ -3,27 +3,34 @@
   <div class="generic-flex-grow-container">
   <!-- <div class="generic-flex-grow-container" (click)="newOnClick($event)"> -->
 
-    <form class="methods-form">    
-      <label for="inputSearch">Select method(s) to add:</label><br>
+    <form>    
+      <label for="inputSearch"><h1>Filter methods:</h1></label>
       <input [(ngModel)]="searchString" autocomplete="off" (input)="applyFilter()" (focus)="onFocus()" (blur)="onBlur()"
         name="inputSearch" id="inputSearch" placeholder="Type to filter ...">
     </form>
 
     <div class="list-container">
 
-      <ul class="list popover" [hidden]="filteredMethods.length === 0">
-        @for (m of filteredMethods; track m) {
-          <li (click)="updateSelectedMethods(m,'add')">{{m.name}}</li>
-        }
-      </ul>
-      <br>
+      @if (!filteredMethods.isEmpty) {
+        <div class="popover">
+          <ul>
+            @for (m of filteredMethods.list; track m) {
+              <li (mousedown)="updateSelectedMethods(m.name,'add')">{{m.name}}</li>
+            }
+          </ul>
+        </div>
+      }
       
-      Selected Methods:
-      <ul class="list">
-        @for (m of selectedMethods; track m) {
-          <li (click)="updateSelectedMethods(m,'remove')">{{m.name}}</li>
-        }
-      </ul>
+      @if (selectedMethods.list.length > 0) {
+        <h1>Selected Methods:</h1>
+        <div class="fixed">
+          <ul>
+            @for (m of selectedMethods.list; track m) {
+              <li (mousedown)="updateSelectedMethods(m.name,'remove')">{{m.name}}</li>
+            }
+          </ul>
+        </div>
+      }
 
     </div>
 
@@ -31,7 +38,7 @@
 
   <div class="nav-btn-container"> 
     <button class="nav-btns"  (click)="nav.scrollTo('home')">Back</button>  
-    <button class="nav-btns" [disabled]="selectedMethods.length===0" (click)="nav.scrollTo('options')">Next</button>  
+    <button class="nav-btns" [disabled]="selectedMethods.isEmpty" (click)="nav.scrollTo('options')">Next</button>  
   </div>
 
 </div>
