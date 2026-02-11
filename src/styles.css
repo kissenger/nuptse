@@ -28,7 +28,7 @@ input, button, select {
 }
 
 input[type=checkbox] {
-  transform: scale(2);
+  transform: scale(1.5);
   accent-color: var(--colour-blue);
 }
 
